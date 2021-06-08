@@ -26,15 +26,20 @@ glm::mat4 Camera::GetViewMatrix()
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 {
     float velocity = MovementSpeed * deltaTime;
+    glm::vec3 frontFull = Front; // Full speed front movement, regardless of how high you look
+    frontFull.y = 0;
+    frontFull = glm::normalize(frontFull);
     if (direction == FORWARD)
-        Position += Front * velocity;
+        Position += frontFull * velocity;
+        //Position += Front * velocity;
     if (direction == BACKWARD)
-        Position -= Front * velocity;
+        Position -= frontFull * velocity;
+        //Position -= Front * velocity;
     if (direction == LEFT)
         Position -= Right * velocity;
     if (direction == RIGHT)
         Position += Right * velocity;
-    //Position.y = 0.0f;
+    Position.y = 0.0f;
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)

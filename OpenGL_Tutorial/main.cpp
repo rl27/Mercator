@@ -204,27 +204,11 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         myShader.setMat4("view", view);
 
-        // glUniform test
-        //float timeValue = glfwGetTime();
-        //float greenValue = sin(timeValue) / 2.0f + 0.5f;
-        //myShader.setGreen("ourColor", greenValue);
-        //myShader.setVec4("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
-
         // Custom transformation
         glm::mat4 transform = glm::mat4(1.0f); // Identity matrix
         transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
         transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
         myShader.setMat4("transform", transform);
-
-        // Model transformation
-        //glm::mat4 model = glm::mat4(1.0f); // Identity matrix
-        //model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        //myShader.setMat4("model", model);
-
-        // View transformation
-        //glm::mat4 view = glm::mat4(1.0f); // Identity matrix
-        //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        //myShader.setMat4("view", view);
 
         // Projection transformation
         glm::mat4 projection = glm::perspective(glm::radians(camera.FOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -236,7 +220,7 @@ int main()
         for (unsigned int i = 0; i < 10; i++)
         {
             // calculate the model matrix for each object and pass it to shader before drawing
-            glm::mat4 model = glm::mat4(1.0f);
+            glm::mat4 model = glm::mat4(1.0f); // Identity matrix
             model = glm::translate(model, cubePositions[i]);
             float angle = 20.0f * i;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
