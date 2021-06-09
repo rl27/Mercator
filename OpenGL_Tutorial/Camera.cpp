@@ -23,23 +23,32 @@ glm::mat4 Camera::GetViewMatrix()
 	return glm::lookAt(Position, Position + Front, Up);
 }
 
-void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
+void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime, bool FPS)
 {
     float velocity = MovementSpeed * deltaTime;
-    glm::vec3 frontFull = Front; // Full speed front movement, regardless of how high you look
-    frontFull.y = 0;
-    frontFull = glm::normalize(frontFull);
+
+    glm::vec3 myFront = Front;
+
+    // Full speed front movement, regardless of how high you look
+    if (FPS)
+    {
+        myFront.y = 0;
+        myFront = glm::normalize(myFront);
+    }
+
     if (direction == FORWARD)
-        Position += frontFull * velocity;
+        Position += myFront * velocity;
         //Position += Front * velocity;
     if (direction == BACKWARD)
-        Position -= frontFull * velocity;
+        Position -= myFront * velocity;
         //Position -= Front * velocity;
     if (direction == LEFT)
         Position -= Right * velocity;
     if (direction == RIGHT)
         Position += Right * velocity;
-    Position.y = 0.0f;
+
+    if (FPS)
+        Position.y = 0.0f;
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)

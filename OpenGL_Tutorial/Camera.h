@@ -45,7 +45,7 @@ public:
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
     // Updates camera position on input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboard(Camera_Movement direction, float deltaTime);
+    void ProcessKeyboard(Camera_Movement direction, float deltaTime, bool FPS = false);
     // Updates Euler Angles (Yaw/Pitch) on input received from mouse movement, then updates camera.
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
     // Updates FOV on input received from a mouse scrolling. Only requires input on the vertical wheel-axis.
