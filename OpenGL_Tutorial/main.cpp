@@ -18,6 +18,8 @@ unsigned int loadTexture(const char* path);
 
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 800;
+bool blinn = true;
+bool blinnKeyPressed = false;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -70,7 +72,9 @@ int main()
 
     // Build shader program (can use any file name)
     Shader shader("shader.vs", "shader.fs");
+    Shader floorShader("shader.vs", "shader.fs");
     Shader lightCubeShader("lightcube.vs", "lightcube.fs");
+
 
     // Enable depth testing so objects render in correct order
     glEnable(GL_DEPTH_TEST);
@@ -139,6 +143,30 @@ int main()
         glm::vec3(-4.0f,  2.0f, -12.0f),
         glm::vec3(0.0f,  0.0f, -3.0f)
     };
+    float planeVertices[] = {
+        // positions            // normals         // texcoords
+         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+        -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
+        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+
+         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
+        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
+         10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
+    };
+    // plane VAO
+    unsigned int planeVAO, planeVBO;
+    glGenVertexArrays(1, &planeVAO);
+    glGenBuffers(1, &planeVBO);
+    glBindVertexArray(planeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glBindVertexArray(0);
 
     // Vertex Array Object
     unsigned int VAO;
@@ -181,6 +209,7 @@ int main()
     // Load textures
     unsigned int diffuseMap = loadTexture("container2.png");
     unsigned int specularMap = loadTexture("container2_specular.png");
+    unsigned int floorTexture = loadTexture("wood.png");
     
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
@@ -203,6 +232,8 @@ int main()
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
 
         // Make shader and rendering calls use our shader program (and the linked shaders)
         shader.use();
@@ -264,6 +295,7 @@ int main()
         shader.setFloat("spotLight.quadratic", 0.032);
         shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+        shader.setInt("blinn", blinn);
 
         // View transformation
         glm::mat4 view = camera.GetViewMatrix();
@@ -309,6 +341,16 @@ int main()
             lightCubeShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
+        
+        shader.use();
+        model = glm::mat4(1.0f);
+        shader.setMat4("model", model);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glBindVertexArray(planeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window); // swap the color buffer (color values for each pixel in GLFW's window)
         glfwPollEvents(); // check for events (i.e. kb or mouse), update the window state, call corresponding functions
@@ -344,6 +386,16 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed)
+    {
+        blinn = !blinn;
+        blinnKeyPressed = true;
+        std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
+    }
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
+    {
+        blinnKeyPressed = false;
+    }
 }
 
 // Process mouse movement
