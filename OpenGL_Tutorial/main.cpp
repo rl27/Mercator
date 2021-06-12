@@ -22,17 +22,13 @@ bool blinn = true;
 bool blinnKeyPressed = false;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-//Camera camera(0.0f, 0.0f, 3.0f);
+Camera camera(glm::vec3(0.0f, 0.5f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
-
-// lighting
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
 {
@@ -72,9 +68,7 @@ int main()
 
     // Build shader program (can use any file name)
     Shader shader("shader.vs", "shader.fs");
-    Shader floorShader("shader.vs", "shader.fs");
     Shader lightCubeShader("lightcube.vs", "lightcube.fs");
-
 
     // Enable depth testing so objects render in correct order
     glEnable(GL_DEPTH_TEST);
@@ -237,8 +231,6 @@ int main()
 
         // Make shader and rendering calls use our shader program (and the linked shaders)
         shader.use();
-        //shader.setVec3("light.position", lightPos);
-        shader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
         shader.setVec3("viewPos", camera.Position);
 
         // Material properties
@@ -377,15 +369,18 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // WASD to move
     const float cameraSpeed = 3.0f * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
+        camera.ProcessKeyboard(FORWARD, deltaTime, true);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        camera.ProcessKeyboard(BACKWARD, deltaTime, true);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
+        camera.ProcessKeyboard(LEFT, deltaTime, true);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+        camera.ProcessKeyboard(RIGHT, deltaTime, true);
+
+    // B to toggle phong/blinn-phong
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed)
     {
         blinn = !blinn;

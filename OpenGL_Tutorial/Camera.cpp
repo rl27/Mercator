@@ -29,6 +29,8 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime, bool FP
 
     glm::vec3 myFront = Front;
 
+    float prevY = Position.y;
+
     // Full speed front movement, regardless of how high you look
     if (FPS)
     {
@@ -48,7 +50,7 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime, bool FP
         Position += Right * velocity;
 
     if (FPS)
-        Position.y = 0.0f;
+        Position.y = prevY;
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)
