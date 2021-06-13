@@ -6,6 +6,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front
     WorldUp = up;
     Yaw = yaw;
     Pitch = pitch;
+    sprint = false;
     updateCameraVectors();
 }
 
@@ -15,6 +16,7 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
     WorldUp = glm::vec3(upX, upY, upZ);
     Yaw = yaw;
     Pitch = pitch;
+    sprint = false;
     updateCameraVectors();
 }
 
@@ -94,4 +96,22 @@ void Camera::updateCameraVectors()
     // also re-calculate the Right and Up vector
     Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     Up = glm::normalize(glm::cross(Right, Front));
+}
+
+void Camera::StartSprint()
+{
+    if (!sprint)
+    {
+        sprint = true;
+        MovementSpeed *= 1.6;
+    }
+}
+
+void Camera::EndSprint()
+{
+    if (sprint)
+    {
+        sprint = false;
+        MovementSpeed *= 0.625;
+    }
 }

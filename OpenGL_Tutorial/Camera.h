@@ -37,6 +37,7 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float FOV;
+    bool sprint;
 
     // Constructor that takes vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = DEFAULT_YAW, float pitch = DEFAULT_PITCH);
@@ -50,6 +51,10 @@ public:
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
     // Updates FOV on input received from a mouse scrolling. Only requires input on the vertical wheel-axis.
     void ProcessMouseScroll(float yoffset);
+    // Move faster when shift key held down
+    void StartSprint();
+    // Move normally when shift key not held down
+    void EndSprint();
 private:
     // Updates Front/Right/Up camera vectors from the Euler Angles (Yaw/Pitch/Roll)
     void updateCameraVectors();
