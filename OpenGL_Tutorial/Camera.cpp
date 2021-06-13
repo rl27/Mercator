@@ -103,7 +103,7 @@ void Camera::StartSprint()
     if (!sprint)
     {
         sprint = true;
-        MovementSpeed *= 1.6;
+        MovementSpeed *= 1.6f;
     }
 }
 
@@ -112,6 +112,6 @@ void Camera::EndSprint()
     if (sprint)
     {
         sprint = false;
-        MovementSpeed *= 0.625;
+        MovementSpeed *= 0.625f;
     }
 }

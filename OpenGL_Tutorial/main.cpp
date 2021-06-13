@@ -255,8 +255,8 @@ int main()
             shader.setVec3(lightStr + "diffuse", 0.8f, 0.8f, 0.8f);
             shader.setVec3(lightStr + "specular", 1.0f, 1.0f, 1.0f);
             shader.setFloat(lightStr + "constant", 1.0f);
-            shader.setFloat(lightStr + "linear", 0.09);
-            shader.setFloat(lightStr + "quadratic", 0.032);
+            shader.setFloat(lightStr + "linear", 0.09f);
+            shader.setFloat(lightStr + "quadratic", 0.032f);
         }
         
         // spotLight
@@ -266,8 +266,8 @@ int main()
         shader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
         shader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
         shader.setFloat("spotLight.constant", 1.0f);
-        shader.setFloat("spotLight.linear", 0.09);
-        shader.setFloat("spotLight.quadratic", 0.032);
+        shader.setFloat("spotLight.linear", 0.09f);
+        shader.setFloat("spotLight.quadratic", 0.032f);
         shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
         shader.setInt("blinn", blinn);
@@ -413,7 +413,7 @@ unsigned int loadTexture(char const* path)
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
     if (data)
     {
-        GLenum format;
+        GLenum format = GL_RED;
         if (nrComponents == 1)
             format = GL_RED;
         else if (nrComponents == 3)
