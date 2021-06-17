@@ -234,14 +234,6 @@ int main()
         // Clear color buffer and depth buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Bind textures
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
-
         // Make shader and rendering calls use our shader program (and the linked shaders)
         shader.use();
         shader.setVec3("viewPos", camera.Position);
@@ -284,21 +276,36 @@ int main()
         shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
+        // World transformation
+        glm::mat4 model = glm::mat4(1.0f);
+        shader.setMat4("model", model);
         // View transformation
         glm::mat4 view = camera.GetViewMatrix();
         shader.setMat4("view", view);
         // Projection transformation
         glm::mat4 projection = glm::perspective(glm::radians(camera.FOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.setMat4("projection", projection);
-        // World transformation
-        glm::mat4 model = glm::mat4(1.0f);
-        shader.setMat4("model", model);
-
         // Custom transformation
         /*glm::mat4 transform = glm::mat4(1.0f); // Identity matrix
         transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
         transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
         shader.setMat4("transform", transform);*/
+
+        // Bind wood floor texture & draw
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glBindVertexArray(planeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // Bind box textures
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
 
         // Render the boxes
         glBindVertexArray(VAO);
@@ -327,17 +334,6 @@ int main()
             lightCubeShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-        
-        // Draw the wood floor
-        shader.use();
-        model = glm::mat4(1.0f);
-        shader.setMat4("model", model);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
-        glBindVertexArray(planeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window); // swap the color buffer (color values for each pixel in GLFW's window)
         glfwPollEvents(); // check for events (i.e. kb or mouse), update the window state, call corresponding functions
@@ -374,6 +370,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime, true);
 
+    // Shift to sprint
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         camera.StartSprint();
     else
