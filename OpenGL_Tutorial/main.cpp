@@ -11,14 +11,17 @@
 #include <iostream>
 #include <string>
 
+// Callback & helper functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
 
+// Screen settings
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 800;
+
 bool blinn = true;
 bool blinnKeyPressed = false;
 
@@ -33,16 +36,17 @@ float lastFrame = 0.0f; // Time of last frame
 
 int main()
 {
-    /* GLFW initialization */
     /* --------------------------------------------------------------------------------- */
+
+    /* GLFW initialization */
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_SAMPLES, 4); // Multisampling
 
     // Create window object
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL tutorial", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -51,13 +55,15 @@ int main()
     }
     glfwMakeContextCurrent(window);
 
-    // Callback functions for [window resize] and [mouse movement]
+    // Callback functions for [window resize], [mouse movement], [scrolling]
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     // Capture cursor
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    /* --------------------------------------------------------------------------------- */
 
     // Initialize GLAD before calling an OpenGL function
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -66,15 +72,16 @@ int main()
         return -1;
     }
 
-    /* --------------------------------------------------------------------------------- */
-
-    // Build shader program (can use any file name)
-    Shader shader("shader.vs", "shader.fs");
-    Shader lightCubeShader("lightcube.vs", "lightcube.fs");
-
     // Enable depth testing so objects render in correct order
     glEnable(GL_DEPTH_TEST);
+    // Enable multisampling (already enabled by default)
     glEnable(GL_MULTISAMPLE);
+
+    /* --------------------------------------------------------------------------------- */
+
+    // Build shader programs
+    Shader shader("shader.vs", "shader.fs");
+    Shader lightCubeShader("lightcube.vs", "lightcube.fs");
 
     float vertices[] = {
         // positions          // normals           // texture coords
@@ -120,7 +127,7 @@ int main()
         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
-    // world space positions of our cubes
+    // Box positions in world space
     glm::vec3 cubePositions[] = {
         glm::vec3(0.0f,  0.0f,  0.0f),
         glm::vec3(2.0f,  5.0f, -15.0f),
@@ -133,7 +140,7 @@ int main()
         glm::vec3(1.5f,  0.2f, -1.5f),
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
-    // positions of the point lights
+    // Point light positions
     glm::vec3 pointLightPositions[] = {
         glm::vec3(0.7f,  0.2f,  2.0f),
         glm::vec3(2.3f, -3.3f, -4.0f),
@@ -150,6 +157,7 @@ int main()
         -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
          10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
     };*/
+    // Wood floor plane
     float planeVertices[] = {
         // positions            // normals         // texcoords
          100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,  100.0f,  0.0f,
@@ -160,6 +168,7 @@ int main()
         -100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,   0.0f, 100.0f,
          100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,  100.0f, 100.0f
     };
+
     // Plane VAO
     unsigned int planeVAO, planeVBO;
     glGenVertexArrays(1, &planeVAO);
@@ -203,13 +212,12 @@ int main()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // Light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
+    // Light VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
     unsigned int lightCubeVAO;
     glGenVertexArrays(1, &lightCubeVAO);
     glBindVertexArray(lightCubeVAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // note that we update the lamp's position attribute's stride to reflect the updated buffer data
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -226,7 +234,7 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // process input
+        // Process input
         processInput(window);
 
         // Background color
@@ -273,8 +281,8 @@ int main()
         shader.setFloat("spotLight.constant", 1.0f);
         shader.setFloat("spotLight.linear", 0.09f);
         shader.setFloat("spotLight.quadratic", 0.032f);
-        shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+        shader.setFloat("spotLight.cutoff", glm::cos(glm::radians(12.5f)));
+        shader.setFloat("spotLight.outerCutoff", glm::cos(glm::radians(15.0f)));
 
         // World transformation
         glm::mat4 model = glm::mat4(1.0f);
@@ -304,8 +312,6 @@ int main()
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
 
         // Render the boxes
         glBindVertexArray(VAO);

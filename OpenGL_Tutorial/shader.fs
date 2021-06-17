@@ -30,8 +30,8 @@ struct DirLight {
 struct SpotLight {
     vec3 position;
     vec3 direction;
-    float cutOff;
-    float outerCutOff;
+    float cutoff;
+    float outerCutoff;
 
     vec3 ambient;
     vec3 diffuse;
@@ -160,8 +160,8 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 
     // spotlight intensity
     float theta = dot(lightDir, normalize(-light.direction)); 
-    float epsilon = light.cutOff - light.outerCutOff;
-    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+    float epsilon = light.cutoff - light.outerCutoff;
+    float intensity = clamp((theta - light.outerCutoff) / epsilon, 0.0, 1.0);
 
     return (ambient + diffuse + specular) * attenuation * intensity;
 }
