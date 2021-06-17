@@ -54,8 +54,6 @@ uniform SpotLight spotLight;
 uniform Material material;
 uniform vec3 viewPos;
 uniform bool blinn;
-uniform sampler2D wood;
-uniform bool floor;
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);

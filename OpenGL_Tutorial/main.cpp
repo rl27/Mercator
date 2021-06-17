@@ -252,6 +252,7 @@ int main()
         shader.setFloat("material.shininess", 32.0f);
 
         // Light properties
+        shader.setInt("blinn", blinn);
         // directional light
         shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
         shader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
@@ -282,7 +283,6 @@ int main()
         shader.setFloat("spotLight.quadratic", 0.032f);
         shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-        shader.setInt("blinn", blinn);
 
         // View transformation
         glm::mat4 view = camera.GetViewMatrix();
