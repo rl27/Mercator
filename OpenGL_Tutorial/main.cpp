@@ -7,9 +7,11 @@
 
 #include "Shader.h"
 #include "Camera.h"
+#include "Tile.h"
 
 #include <iostream>
 #include <string>
+#include <math.h>
 
 // Callback & helper functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -17,6 +19,12 @@ void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
+
+void printVec(glm::vec3 v);
+void printNum(float num);
+
+void setArray(float arr[], glm::vec3 v, int ind);
+void setAllVertices(float arr[], Tile T);
 
 // Screen settings
 unsigned int SCR_WIDTH = 1280;
@@ -26,7 +34,7 @@ bool blinn = true;
 bool blinnKeyPressed = false;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.5f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.5f, 0.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -129,16 +137,7 @@ int main()
     };
     // Box positions in world space
     glm::vec3 cubePositions[] = {
-        glm::vec3(0.0f,  0.0f,  0.0f),
-        glm::vec3(2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3(2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3(1.3f, -2.0f, -2.5f),
-        glm::vec3(1.5f,  2.0f, -2.5f),
-        glm::vec3(1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
+        glm::vec3(0.0f,  2.0f,  0.0f),
     };
     // Point light positions
     glm::vec3 pointLightPositions[] = {
@@ -147,26 +146,15 @@ int main()
         glm::vec3(-4.0f,  2.0f, -12.0f),
         glm::vec3(0.0f,  0.0f, -3.0f)
     };
-    /*float planeVertices[] = {
-        // positions            // normals         // texcoords
-         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-        -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-
-         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-         10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
-    };*/
-    // Wood floor plane
     float planeVertices[] = {
-        // positions            // normals         // texcoords
-         100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,  100.0f,  0.0f,
-        -100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-        -100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,   0.0f, 100.0f,
+        // positions         // normals         // texcoords
+         1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
+        -1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+        -1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
 
-         100.0f, -0.5f,  100.0f,  0.0f, 1.0f, 0.0f,  100.0f,  0.0f,
-        -100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,   0.0f, 100.0f,
-         100.0f, -0.5f, -100.0f,  0.0f, 1.0f, 0.0f,  100.0f, 100.0f
+         1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
+        -1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+         1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f
     };
 
     // Plane VAO
@@ -225,7 +213,39 @@ int main()
     unsigned int diffuseMap = loadTexture("container2.png");
     unsigned int specularMap = loadTexture("container2_specular.png");
     unsigned int floorTexture = loadTexture("wood.png");
+
+
+
+
+    /*glm::vec3 v1(0, 1, 0);
+    glm::vec3 v2(3, sqrt(26), 4);
+    glm::vec3 v3(-4, sqrt(26), 3);
+    glm::vec3 mid = midpoint(v2, v3);
+    glm::vec3 minkvp = v3 - minkProjection(v3, v2);
+    printVec(minkvp);
+    printNum(hypEval(minkvp));
+    printNum(minkDot(v2, minkvp));
+    printVec(hypNormalize(minkvp));
+
+    glm::vec3 b(0.93667777, 2.12158309, 1.61979924);
+    printVec(extend(v2, b));*/
+
+
+    Tile O("");
+    O.setStart(glm::vec3(0, 0, 0));
+
+    Tile R("R");
+    O.setRight(&R);
     
+    Tile RR("RR");
+    R.setRight(&RR);
+
+    Tile RRR("RRR");
+    RR.setRight(&RRR);
+
+    Tile RRRR("RRRR");
+    RRR.setRight(&RRRR);
+
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
     {
@@ -294,17 +314,57 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.FOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.setMat4("projection", projection);
         // Custom transformation
-        /*glm::mat4 transform = glm::mat4(1.0f); // Identity matrix
-        transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        shader.setMat4("transform", transform);*/
+        glm::mat4 transform = glm::mat4(1.0f); // Identity matrix
+        //transform = glm::translate(transform, glm::vec3(0.0f, 2.0f, 0.0f));
+        //transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        shader.setMat4("transform", transform);
 
         // Bind wood floor texture & draw
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
         glBindVertexArray(planeVAO);
+
+        /*shader.setMat4("transform", transform);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        transform[3][2] = -2.0f;
+        shader.setMat4("transform", transform);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        transform[3][2] = -4.0f;
+        shader.setMat4("transform", transform);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        transform[3][2] = -6.0f;
+        shader.setMat4("transform", transform);
+        glDrawArrays(GL_TRIANGLES, 0, 6);*/
+
+
+        setAllVertices(planeVertices, O);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        setAllVertices(planeVertices, R);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        setAllVertices(planeVertices, RR);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        setAllVertices(planeVertices, RRR);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        setAllVertices(planeVertices, RRRR);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // Bind box textures
@@ -314,8 +374,8 @@ int main()
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
         // Render the boxes
-        glBindVertexArray(VAO);
-        for (unsigned int i = 0; i < 10; i++)
+        /*glBindVertexArray(VAO);
+        for (unsigned int i = 0; i < sizeof(cubePositions)/sizeof(cubePositions[0]); i++)
         {
             // calculate the model matrix for each object and pass it to shader before drawing
             glm::mat4 model = glm::mat4(1.0f);
@@ -325,10 +385,10 @@ int main()
             shader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        }*/
 
         // Draw the point lights
-        lightCubeShader.use();
+        /*lightCubeShader.use();
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
         glBindVertexArray(lightCubeVAO);
@@ -339,7 +399,7 @@ int main()
             model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
             lightCubeShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        }*/
 
         glfwSwapBuffers(window); // swap the color buffer (color values for each pixel in GLFW's window)
         glfwPollEvents(); // check for events (i.e. kb or mouse), update the window state, call corresponding functions
@@ -455,4 +515,34 @@ unsigned int loadTexture(char const* path)
 
     stbi_image_free(data);
     return textureID;
+}
+
+// Print a vec3
+void printVec(glm::vec3 v)
+{
+    std::cout << "(" << v.x << ", " << v.y << ", " << v.z << ")" << std::endl;
+}
+
+// Print a float
+void printNum(float num)
+{
+    std::cout << num << std::endl;
+}
+
+// Set consecutive elements in array to a vec3
+void setArray(float arr[], glm::vec3 v, int ind)
+{
+    arr[ind] = v.x;
+    arr[ind + 1] = v.y;
+    arr[ind + 2] = v.z;
+}
+
+void setAllVertices(float arr[], Tile tile)
+{
+    setArray(arr, getPoincare(tile.TR), 0);
+    setArray(arr, getPoincare(tile.TL), 8);
+    setArray(arr, getPoincare(tile.BL), 16);
+    setArray(arr, getPoincare(tile.TR), 24);
+    setArray(arr, getPoincare(tile.BL), 32);
+    setArray(arr, getPoincare(tile.BR), 40);
 }
