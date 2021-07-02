@@ -7,6 +7,7 @@
 
 #include "hyper.h"
 #include <string>
+#include <random>
 
 class Tile
 {
@@ -21,11 +22,12 @@ public:
 	Tile *Right;
 	Tile *Down;
 	std::string name;
+	glm::vec4 color;
 
 	Tile(std::string n);
 
-	// Set starting tile based on relative position to its center
-	void setStart(glm::vec3 rel);
+	// Set starting tile position based on relative position to its center
+	void setStart(glm::vec3 relPos);
 
 	// Set neighboring tiles
 	void setRight(Tile* R);

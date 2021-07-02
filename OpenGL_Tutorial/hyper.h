@@ -35,6 +35,7 @@ static glm::vec3 midpoint(glm::vec3 a, glm::vec3 b)
 }
 
 // Minkowski distance between a and b
+// https://en.wikipedia.org/wiki/Hyperboloid_model#Minkowski_quadratic_form
 static float dist(glm::vec3 a, glm::vec3 b)
 {
     return acosh(minkDot(a, b));
@@ -47,6 +48,7 @@ static glm::vec3 minkProjection(glm::vec3 a, glm::vec3 b)
 }
 
 // Extend a through b to c, such that the midpoint of a and c is b.
+// https://en.wikipedia.org/wiki/Hyperboloid_model#Straight_lines
 static glm::vec3 extend(glm::vec3 a, glm::vec3 b)
 {
     float w = dist(a, b);
@@ -54,11 +56,46 @@ static glm::vec3 extend(glm::vec3 a, glm::vec3 b)
     return a * cosh(2 * w) + proj * sinh(2 * w);
 }
 
-// Get Poincare projection from hyperboloid to y=0 plane
+// Get Poincare projection from hyperboloid to (0,-1,0)
 static glm::vec3 getPoincare(glm::vec3 v)
 {
     float y1 = v.y + 1;
     return glm::vec3(v.x / y1, 0, v.z / y1);
+}
+
+// Get Beltrami-Klein projection from hyperboloid to (0,0,0)
+static glm::vec3 getBeltrami(glm::vec3 v)
+{
+    return glm::vec3(v.x / v.y, 0, v.z / v.y);
+}
+
+// Translate vector in x-direction
+static glm::vec3 translateX(glm::vec3 v, float dist)
+{
+    float co = cosh(dist);
+    float si = sinh(dist);
+    return glm::vec3(co * v.x + si * v.y, si * v.x + co * v.y, v.z);
+}
+
+// Translate vector in z-direction
+static glm::vec3 translateZ(glm::vec3 v, float dist)
+{
+    float co = cosh(dist);
+    float si = sinh(dist);
+    return glm::vec3(v.x, si * v.z + co * v.y, co * v.z + si * v.y);
+}
+
+// Get hyperboloid coordinates from x/z pair
+static glm::vec3 fromOrigin(float x, float z)
+{
+    if (x == 0 && z == 0)
+        return glm::vec3(0, 1, 0);
+
+    float dist = sqrt(pow(x, 2.0f) + pow(z, 2.0f));
+    float y = cosh(dist);
+    float ratio = sqrt((pow(y, 2) - 1) / (pow(dist, 2)));
+
+    return glm::vec3(ratio * x, y, ratio * z);
 }
 
 #endif

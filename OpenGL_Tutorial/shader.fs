@@ -53,6 +53,7 @@ uniform DirLight dirLight;
 uniform SpotLight spotLight;
 uniform Material material;
 uniform vec3 viewPos;
+uniform vec4 color;
 uniform bool blinn;
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
@@ -61,7 +62,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main()
 {
-    vec3 norm = normalize(Normal);
+    /*vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
 
     // Directional light
@@ -70,11 +71,14 @@ void main()
     for(int i = 0; i < NR_POINT_LIGHTS; i++)
         result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);   
     // Spotlight
-    //result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
+    result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
     
     FragColor = vec4(result, 1.0);
     // Line below is pre-lighting
     //FragColor = texture(material.diffuse, TexCoords);
+    */
+
+    FragColor = color;
 }
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)

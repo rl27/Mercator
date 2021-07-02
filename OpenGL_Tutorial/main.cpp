@@ -26,6 +26,7 @@ void printNum(float num);
 void setArray(float arr[], glm::vec3 v, int ind);
 void setAllVertices(float arr[], Tile T);
 
+
 // Screen settings
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 800;
@@ -34,7 +35,7 @@ bool blinn = true;
 bool blinnKeyPressed = false;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.5f, 0.0f));
+Camera camera(glm::vec3(0.0f, 0.2f, 0.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -214,25 +215,21 @@ int main()
     unsigned int specularMap = loadTexture("container2_specular.png");
     unsigned int floorTexture = loadTexture("wood.png");
 
-
-
-
-    /*glm::vec3 v1(0, 1, 0);
-    glm::vec3 v2(3, sqrt(26), 4);
-    glm::vec3 v3(-4, sqrt(26), 3);
-    glm::vec3 mid = midpoint(v2, v3);
-    glm::vec3 minkvp = v3 - minkProjection(v3, v2);
-    printVec(minkvp);
-    printNum(hypEval(minkvp));
-    printNum(minkDot(v2, minkvp));
-    printVec(hypNormalize(minkvp));
-
-    glm::vec3 b(0.93667777, 2.12158309, 1.61979924);
-    printVec(extend(v2, b));*/
-
-
     Tile O("");
     O.setStart(glm::vec3(0, 0, 0));
+
+    glm::vec3 test(0, 1, 0);
+    test = translateX(test, 0.626884); // 0.62 first, 0.53 second - x/z order doesn't matter
+    test = translateZ(test, 0.530646); // O.TR
+
+    test = translateX(test, -1.06129);
+    test = translateZ(test, 1.06129);
+    test = translateX(test, 1.06129); // RUL.TR
+    printVec(test);
+
+    printNum(dist(O.center, midpoint(O.TR, O.BR)));
+    printNum(dist(O.TR, midpoint(O.TR, O.BR)));
+    printNum(dist(O.TR, O.center));
 
     Tile R("R");
     O.setRight(&R);
@@ -245,6 +242,23 @@ int main()
 
     Tile RRRR("RRRR");
     RRR.setRight(&RRRR);
+
+    Tile U("U");
+    O.setUp(&U);
+
+    Tile RU("RU");
+    R.setUp(&RU);
+
+    Tile RUL("RUL");
+    RU.setLeft(&RUL);
+
+    Tile RRU("RRU");
+    RR.setUp(&RRU);
+
+    Tile RRUL("RRUL");
+    RRU.setLeft(&RRUL);
+
+    printVec(RUL.TR);
 
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
@@ -319,62 +333,89 @@ int main()
         //transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
         shader.setMat4("transform", transform);
 
-        // Bind wood floor texture & draw
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
+
+        // Bind tile/plane VAO
         glBindVertexArray(planeVAO);
 
-        /*shader.setMat4("transform", transform);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        transform[3][2] = -2.0f;
-        shader.setMat4("transform", transform);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        transform[3][2] = -4.0f;
-        shader.setMat4("transform", transform);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        transform[3][2] = -6.0f;
-        shader.setMat4("transform", transform);
-        glDrawArrays(GL_TRIANGLES, 0, 6);*/
-
+        O.setStart(-camera.Position);
+        O.setRight(&R);
+        R.setRight(&RR);
+        RR.setRight(&RRR);
+        RRR.setRight(&RRRR);
+        O.setUp(&U);
+        R.setUp(&RU);
+        RU.setLeft(&RUL);
+        RR.setUp(&RRU);
+        RRU.setLeft(&RRUL);
 
         setAllVertices(planeVertices, O);
+        shader.setVec4("color", O.color);
         glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         setAllVertices(planeVertices, R);
+        shader.setVec4("color", R.color);
         glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         setAllVertices(planeVertices, RR);
+        shader.setVec4("color", RR.color);
         glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         setAllVertices(planeVertices, RRR);
+        shader.setVec4("color", RRR.color);
         glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         setAllVertices(planeVertices, RRRR);
+        shader.setVec4("color", RRRR.color);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        setAllVertices(planeVertices, RRU);
+        shader.setVec4("color", RRU.color);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        setAllVertices(planeVertices, RRUL);
+        shader.setVec4("color", RRUL.color);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        setAllVertices(planeVertices, U);
+        shader.setVec4("color", U.color);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        setAllVertices(planeVertices, RU);
+        shader.setVec4("color", RU.color);
+        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        setAllVertices(planeVertices, RUL);
+        shader.setVec4("color", RUL.color);
         glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // Bind box textures
-        glActiveTexture(GL_TEXTURE0);
+        /*glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
         // Render the boxes
-        /*glBindVertexArray(VAO);
+        glBindVertexArray(VAO);
         for (unsigned int i = 0; i < sizeof(cubePositions)/sizeof(cubePositions[0]); i++)
         {
             // calculate the model matrix for each object and pass it to shader before drawing
@@ -545,4 +586,10 @@ void setAllVertices(float arr[], Tile tile)
     setArray(arr, getPoincare(tile.TR), 24);
     setArray(arr, getPoincare(tile.BL), 32);
     setArray(arr, getPoincare(tile.BR), 40);
+    /*setArray(arr, getBeltrami(tile.TR), 0);
+    setArray(arr, getBeltrami(tile.TL), 8);
+    setArray(arr, getBeltrami(tile.BL), 16);
+    setArray(arr, getBeltrami(tile.TR), 24);
+    setArray(arr, getBeltrami(tile.BL), 32);
+    setArray(arr, getBeltrami(tile.BR), 40);*/
 }

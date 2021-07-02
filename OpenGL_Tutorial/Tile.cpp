@@ -3,20 +3,25 @@
 Tile::Tile(std::string n)
 {
 	name = n;
+	float r = ((float)rand() / (RAND_MAX));
+	float g = ((float)rand() / (RAND_MAX));
+	float b = ((float)rand() / (RAND_MAX));
+	color = glm::vec4(r, g, b, 1.0f);
 }
 
-void Tile::setStart(glm::vec3 rel)
+void Tile::setStart(glm::vec3 relPos)
 {
-	float y = cosh(sqrt(2) / 2);
-	float r = sqrt(pow(y, 2) - 1);
-	float theta = M_PI / 4;
-	float x = r * cos(theta);
-	float z = r * sin(theta);
-	this->center = glm::vec3(0, 1, 0);
-	this->TL = glm::vec3(-x, y, z);
-	this->TR = glm::vec3(x, y, z);
-	this->BL = glm::vec3(-x, y, -z);
-	this->BR = glm::vec3(x, y, -z);
+	/* NOT WORKING */
+	/* NOT WORKING */
+	/* NOT WORKING */
+
+	float side = 1.191475;
+
+	this->center = fromOrigin(relPos.x, relPos.z);
+	this->TL = fromOrigin(relPos.x - side / 2, relPos.z + side / 2);
+	this->TR = fromOrigin(relPos.x + side / 2, relPos.z + side / 2);
+	this->BL = fromOrigin(relPos.x - side / 2, relPos.z - side / 2);
+	this->BR = fromOrigin(relPos.x + side / 2, relPos.z - side / 2);
 }
 
 void Tile::setRight(Tile* R)
