@@ -219,8 +219,14 @@ int main()
     O.setStart(glm::vec3(0, 0, 0));
 
     glm::vec3 test(0, 1, 0);
-    test = translateX(test, 0.626884); // 0.62 first, 0.53 second - x/z order doesn't matter
-    test = translateZ(test, 0.530646); // O.TR
+    test = translateZ(test, 0.626884);
+    test = translateX(test, 0.530646);
+
+    printVec(test);
+    printVec(O.TR);
+    printVec(O.TL);
+    printVec(O.BR);
+    printVec(O.BL);
 
     test = translateX(test, -1.06129);
     test = translateZ(test, 1.06129);
@@ -280,43 +286,6 @@ int main()
         shader.use();
         shader.setVec3("viewPos", camera.Position);
 
-        // Material properties
-        shader.setInt("material.diffuse", 0);
-        shader.setInt("material.specular", 1);
-        shader.setFloat("material.shininess", 32.0f);
-
-        // Light properties
-        shader.setInt("blinn", blinn);
-        // directional light
-        shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        shader.setVec3("dirLight.ambient", 0.5f, 0.5f, 0.5f);
-        shader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-        shader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-
-        // Point lights
-        for (int i = 0; i < 4; i++)
-        {
-            std::string lightStr = "pointLights[" + std::to_string(i) + "].";
-            shader.setVec3(lightStr + "position", pointLightPositions[i]);
-            shader.setVec3(lightStr + "ambient", 0.05f, 0.05f, 0.05f);
-            shader.setVec3(lightStr + "diffuse", 0.8f, 0.8f, 0.8f);
-            shader.setVec3(lightStr + "specular", 1.0f, 1.0f, 1.0f);
-            shader.setFloat(lightStr + "constant", 1.0f);
-            shader.setFloat(lightStr + "linear", 0.09f);
-            shader.setFloat(lightStr + "quadratic", 0.032f);
-        }
-        
-        // spotLight
-        shader.setVec3("spotLight.position", camera.Position);
-        shader.setVec3("spotLight.direction", camera.Front);
-        shader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        shader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        shader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        shader.setFloat("spotLight.constant", 1.0f);
-        shader.setFloat("spotLight.linear", 0.09f);
-        shader.setFloat("spotLight.quadratic", 0.032f);
-        shader.setFloat("spotLight.cutoff", glm::cos(glm::radians(12.5f)));
-        shader.setFloat("spotLight.outerCutoff", glm::cos(glm::radians(15.0f)));
 
         // World transformation
         glm::mat4 model = glm::mat4(1.0f);

@@ -69,6 +69,10 @@ static glm::vec3 getBeltrami(glm::vec3 v)
     return glm::vec3(v.x / v.y, 0, v.z / v.y);
 }
 
+/*******************
+* Note on translations: do in reverse order. I.e. to get RUL, do left -> up -> right translations.
+*/
+
 // Translate vector in x-direction
 static glm::vec3 translateX(glm::vec3 v, float dist)
 {

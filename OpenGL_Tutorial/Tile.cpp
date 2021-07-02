@@ -11,17 +11,19 @@ Tile::Tile(std::string n)
 
 void Tile::setStart(glm::vec3 relPos)
 {
-	/* NOT WORKING */
-	/* NOT WORKING */
-	/* NOT WORKING */
-
 	float side = 1.191475;
 
-	this->center = fromOrigin(relPos.x, relPos.z);
-	this->TL = fromOrigin(relPos.x - side / 2, relPos.z + side / 2);
-	this->TR = fromOrigin(relPos.x + side / 2, relPos.z + side / 2);
-	this->BL = fromOrigin(relPos.x - side / 2, relPos.z - side / 2);
-	this->BR = fromOrigin(relPos.x + side / 2, relPos.z - side / 2);
+	glm::vec3 og(0, 1, 0);
+	glm::vec3 og_TR = translateX(translateZ(og, 0.626884), 0.530646);
+	glm::vec3 og_TL = translateX(translateZ(og, 0.626884), -0.530646);
+	glm::vec3 og_BR = translateX(translateZ(og, -0.626884), 0.530646);
+	glm::vec3 og_BL = translateX(translateZ(og, -0.626884), -0.530646);
+
+	this->center = translateX(translateZ(og, relPos.z), relPos.x);
+	this->TL = translateX(translateZ(og_TL, relPos.z), relPos.x);;
+	this->TR = translateX(translateZ(og_TR, relPos.z), relPos.x);;
+	this->BL = translateX(translateZ(og_BL, relPos.z), relPos.x);;
+	this->BR = translateX(translateZ(og_BR, relPos.z), relPos.x);;
 }
 
 void Tile::setRight(Tile* R)

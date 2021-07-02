@@ -9,6 +9,9 @@
 #include <string>
 #include <random>
 
+/* Tile class for square tiles.
+* Order-5 square tiling is achieved by having a distance of phi (golden ratio) between the centers of neighboring tiles.
+*/
 class Tile
 {
 public:
