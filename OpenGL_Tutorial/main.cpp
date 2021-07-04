@@ -24,7 +24,7 @@ void printVec(glm::vec3 v);
 void printNum(float num);
 
 void setArray(float arr[], glm::vec3 v, int ind);
-void setAllVertices(float arr[], Tile T);
+void setAllVertices(float arr[], Tile* T);
 
 
 // Screen settings
@@ -42,6 +42,9 @@ bool firstMouse = true;
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
+
+// Track tiles
+std::vector<Tile*> Tile::tiles;
 
 int main()
 {
@@ -215,56 +218,8 @@ int main()
     unsigned int specularMap = loadTexture("container2_specular.png");
     unsigned int floorTexture = loadTexture("wood.png");
 
-    Tile O("");
-    O.setStart(glm::vec3(0, 0, 0));
-
-    glm::vec3 test(0, 1, 0);
-    test = translateZ(test, 0.626884);
-    test = translateX(test, 0.530646);
-
-    printVec(test);
-    printVec(O.TR);
-    printVec(O.TL);
-    printVec(O.BR);
-    printVec(O.BL);
-
-    test = translateX(test, -1.06129);
-    test = translateZ(test, 1.06129);
-    test = translateX(test, 1.06129); // RUL.TR
-    printVec(test);
-
-    printNum(dist(O.center, midpoint(O.TR, O.BR)));
-    printNum(dist(O.TR, midpoint(O.TR, O.BR)));
-    printNum(dist(O.TR, O.center));
-
-    Tile R("R");
-    O.setRight(&R);
-    
-    Tile RR("RR");
-    R.setRight(&RR);
-
-    Tile RRR("RRR");
-    RR.setRight(&RRR);
-
-    Tile RRRR("RRRR");
-    RRR.setRight(&RRRR);
-
-    Tile U("U");
-    O.setUp(&U);
-
-    Tile RU("RU");
-    R.setUp(&RU);
-
-    Tile RUL("RUL");
-    RU.setLeft(&RUL);
-
-    Tile RRU("RRU");
-    RR.setUp(&RRU);
-
-    Tile RRUL("RRUL");
-    RRU.setLeft(&RRUL);
-
-    printVec(RUL.TR);
+    Tile* curTile = new Tile("TEST");
+    curTile->setStart(glm::vec3(0, 0, 0));
 
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
@@ -306,76 +261,15 @@ int main()
         // Bind tile/plane VAO
         glBindVertexArray(planeVAO);
 
-        O.setStart(-camera.Position);
-        O.setRight(&R);
-        R.setRight(&RR);
-        RR.setRight(&RRR);
-        RRR.setRight(&RRRR);
-        O.setUp(&U);
-        R.setUp(&RU);
-        RU.setLeft(&RUL);
-        RR.setUp(&RRU);
-        RRU.setLeft(&RRUL);
-
-        setAllVertices(planeVertices, O);
-        shader.setVec4("color", O.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        setAllVertices(planeVertices, R);
-        shader.setVec4("color", R.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        setAllVertices(planeVertices, RR);
-        shader.setVec4("color", RR.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        setAllVertices(planeVertices, RRR);
-        shader.setVec4("color", RRR.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        setAllVertices(planeVertices, RRRR);
-        shader.setVec4("color", RRRR.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        setAllVertices(planeVertices, RRU);
-        shader.setVec4("color", RRU.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        setAllVertices(planeVertices, RRUL);
-        shader.setVec4("color", RRUL.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        setAllVertices(planeVertices, U);
-        shader.setVec4("color", U.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        setAllVertices(planeVertices, RU);
-        shader.setVec4("color", RU.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        setAllVertices(planeVertices, RUL);
-        shader.setVec4("color", RUL.color);
-        glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        curTile->setStart(-camera.Position);
+        for (Tile* t : Tile::tiles)
+        {
+            setAllVertices(planeVertices, t);
+            shader.setVec4("color", t->color);
+            glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
 
         // Bind box textures
         /*glActiveTexture(GL_TEXTURE0);
@@ -418,6 +312,9 @@ int main()
     // Clean resources allocated for GLFW
     glfwTerminate();
 
+    // Free memory allocated for all tiles recursively
+    delete curTile;
+
     return 0;
 }
 
@@ -438,7 +335,10 @@ void processInput(GLFWwindow* window)
 
     // WASD to move
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
         camera.ProcessKeyboard(FORWARD, deltaTime, true);
+        //printVec(camera.Position);
+    }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         camera.ProcessKeyboard(BACKWARD, deltaTime, true);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -547,18 +447,18 @@ void setArray(float arr[], glm::vec3 v, int ind)
     arr[ind + 2] = v.z;
 }
 
-void setAllVertices(float arr[], Tile tile)
+void setAllVertices(float arr[], Tile* tile)
 {
-    setArray(arr, getPoincare(tile.TR), 0);
-    setArray(arr, getPoincare(tile.TL), 8);
-    setArray(arr, getPoincare(tile.BL), 16);
-    setArray(arr, getPoincare(tile.TR), 24);
-    setArray(arr, getPoincare(tile.BL), 32);
-    setArray(arr, getPoincare(tile.BR), 40);
-    /*setArray(arr, getBeltrami(tile.TR), 0);
-    setArray(arr, getBeltrami(tile.TL), 8);
-    setArray(arr, getBeltrami(tile.BL), 16);
-    setArray(arr, getBeltrami(tile.TR), 24);
-    setArray(arr, getBeltrami(tile.BL), 32);
-    setArray(arr, getBeltrami(tile.BR), 40);*/
+    setArray(arr, getPoincare(tile->TR), 0);
+    setArray(arr, getPoincare(tile->TL), 8);
+    setArray(arr, getPoincare(tile->BL), 16);
+    setArray(arr, getPoincare(tile->TR), 24);
+    setArray(arr, getPoincare(tile->BL), 32);
+    setArray(arr, getPoincare(tile->BR), 40);
+    /*setArray(arr, getBeltrami(tile->TR), 0);
+    setArray(arr, getBeltrami(tile->TL), 8);
+    setArray(arr, getBeltrami(tile->BL), 16);
+    setArray(arr, getBeltrami(tile->TR), 24);
+    setArray(arr, getBeltrami(tile->BL), 32);
+    setArray(arr, getBeltrami(tile->BR), 40);*/
 }

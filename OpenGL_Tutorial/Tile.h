@@ -8,6 +8,9 @@
 #include "hyper.h"
 #include <string>
 #include <random>
+#include <vector>
+#include <algorithm>
+#include <iostream>
 
 /* Tile class for square tiles.
 * Order-5 square tiling is achieved by having a distance of phi (golden ratio) between the centers of neighboring tiles.
@@ -15,28 +18,37 @@
 class Tile
 {
 public:
-	glm::vec3 center;
-	glm::vec3 TL;
-	glm::vec3 TR;
-	glm::vec3 BL;
-	glm::vec3 BR;
-	Tile *Up;
-	Tile *Left;
-	Tile *Right;
-	Tile *Down;
-	std::string name;
-	glm::vec4 color;
+    static std::vector<Tile*> tiles;
 
-	Tile(std::string n);
+    glm::vec3 center;
+    glm::vec3 TL;
+    glm::vec3 TR;
+    glm::vec3 BL;
+    glm::vec3 BR;
+    Tile *Up;
+    Tile *Left;
+    Tile *Right;
+    Tile *Down;
+    std::string name;
+    glm::vec4 color;
+    int num;
 
-	// Set starting tile position based on relative position to its center
-	void setStart(glm::vec3 relPos);
+    Tile(std::string n);
 
-	// Set neighboring tiles
-	void setRight(Tile* R);
-	void setLeft(Tile* L);
-	void setUp(Tile* U);
-	void setDown(Tile* D);
+    // Recursively expand in each direction
+    void expand();
+
+    // Set starting tile position based on relative position to its center
+    void setStart(glm::vec3 relPos);
+
+    // Set neighboring tiles
+    void setRight(Tile* R);
+    void setLeft(Tile* L);
+    void setUp(Tile* U);
+    void setDown(Tile* D);
+
+    // Check if in vector of tiles
+    bool inTiles();
 };
 
 #endif
