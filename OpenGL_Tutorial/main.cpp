@@ -218,7 +218,7 @@ int main()
     unsigned int specularMap = loadTexture("container2_specular.png");
     unsigned int floorTexture = loadTexture("wood.png");
 
-    Tile* curTile = new Tile("TEST");
+    Tile* curTile = new Tile("O");
     curTile->setStart(glm::vec3(0, 0, 0));
 
     // Rendering loop - runs until GLFW is instructed to close
@@ -239,7 +239,7 @@ int main()
 
         // Make shader and rendering calls use our shader program (and the linked shaders)
         shader.use();
-        shader.setVec3("viewPos", camera.Position);
+        //shader.setVec3("viewPos", glm::vec3(camera.Position);
 
 
         // World transformation
@@ -261,7 +261,67 @@ int main()
         // Bind tile/plane VAO
         glBindVertexArray(planeVAO);
 
-        curTile->setStart(-camera.Position);
+        
+        float distCur = curTile->center.y;
+        // Up
+        if (distCur > curTile->Up->center.y)
+        {
+            printVec(curTile->Up->center);
+            printVec(curTile->Up->TL);
+            printVec(curTile->Up->TR);
+            printVec(curTile->Up->BL);
+            printVec(curTile->Up->BR);
+            std::cout << "\n";
+
+            camera.Position.z = asinh(curTile->Up->center.z);
+            camera.Position.x = asinh(curTile->Up->center.x / cosh(camera.Position.z));
+            curTile = curTile->Up;
+            curTile->setStart(camera.Position);
+
+            printVec(curTile->center);
+            printVec(curTile->TL);
+            printVec(curTile->TR);
+            printVec(curTile->BL);
+            printVec(curTile->BR);
+            std::cout << "\n";
+        }
+        // Right
+        else if (distCur > curTile->Right->center.y)
+        {
+            printVec(curTile->Right->center);
+            printVec(curTile->Right->TL);
+            printVec(curTile->Right->TR);
+            printVec(curTile->Right->BL);
+            printVec(curTile->Right->BR);
+            std::cout << "\n";
+
+            camera.Position.z = asinh(curTile->Right->center.z);
+            camera.Position.x = asinh(curTile->Right->center.x / cosh(camera.Position.z));
+            curTile = curTile->Right;
+            curTile->setStart(camera.Position);
+
+            printVec(curTile->center);
+            printVec(curTile->TL);
+            printVec(curTile->TR);
+            printVec(curTile->BL);
+            printVec(curTile->BR);
+        }
+        // Down
+        else if (distCur > curTile->Down->center.y)
+        {
+            camera.Position.z = asinh(curTile->Down->center.z);
+            camera.Position.x = asinh(curTile->Down->center.x / cosh(camera.Position.z));
+            curTile = curTile->Down;
+        }
+        else if (distCur > curTile->Left->center.y)
+        {
+            camera.Position.z = asinh(curTile->Left->center.z);
+            camera.Position.x = asinh(curTile->Left->center.x / cosh(camera.Position.z));
+            curTile = curTile->Left;
+        }
+
+        curTile->setStart(camera.Position);
+
         for (Tile* t : Tile::tiles)
         {
             setAllVertices(planeVertices, t);
@@ -336,15 +396,15 @@ void processInput(GLFWwindow* window)
     // WASD to move
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        camera.ProcessKeyboard(FORWARD, deltaTime, true);
+        camera.ProcessKeyboard(BACKWARD, deltaTime, true);
         //printVec(camera.Position);
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime, true);
+        camera.ProcessKeyboard(FORWARD, deltaTime, true);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime, true);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime, true);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime, true);
 
     // Shift to sprint
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)

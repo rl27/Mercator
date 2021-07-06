@@ -102,4 +102,13 @@ static glm::vec3 fromOrigin(float x, float z)
     return glm::vec3(ratio * x, y, ratio * z);
 }
 
+// Check if two coords are very close
+static bool close(glm::vec3 a, glm::vec3 b)
+{
+    float dist = sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2) + pow(a[2] - b[2], 2));
+    if (dist < 0.3)
+        return true;
+    return false;
+}
+
 #endif
