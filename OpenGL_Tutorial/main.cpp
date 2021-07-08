@@ -45,6 +45,8 @@ float lastFrame = 0.0f; // Time of last frame
 
 // Track tiles
 std::vector<Tile*> Tile::tiles;
+std::vector<Tile*> Tile::next;
+std::vector<Tile*> Tile::created;
 
 int main()
 {
@@ -218,8 +220,24 @@ int main()
     unsigned int specularMap = loadTexture("container2_specular.png");
     unsigned int floorTexture = loadTexture("wood.png");
 
+
     Tile* curTile = new Tile("O");
     curTile->setStart(glm::vec3(0, 0, 0));
+    bool whichStart = true;
+
+    glm::vec3 test(0, 1, 0);
+    test = translateZ(test, 0.6268697);
+    test = translateX(test, 0.5306375);
+    
+    test = translateX(test, -1.061275);
+    test = translateZ(test, 1.061275);
+    test = translateX(test, 1.061275);
+    printVec(test);
+
+    printVec(curTile->Right->Up->Left->TR);
+    printVec(curTile->Right->Up->Left->TL);
+    printVec(curTile->Right->Up->Left->BR);
+    printVec(curTile->Right->Up->Left->BL);
 
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
@@ -266,61 +284,49 @@ int main()
         // Up
         if (distCur > curTile->Up->center.y)
         {
-            printVec(curTile->Up->center);
-            printVec(curTile->Up->TL);
-            printVec(curTile->Up->TR);
-            printVec(curTile->Up->BL);
-            printVec(curTile->Up->BR);
-            std::cout << "\n";
-
             camera.Position.z = asinh(curTile->Up->center.z);
             camera.Position.x = asinh(curTile->Up->center.x / cosh(camera.Position.z));
+            //camera.Position.z += 2 * 0.5306375;
             curTile = curTile->Up;
-            curTile->setStart(camera.Position);
-
-            printVec(curTile->center);
-            printVec(curTile->TL);
-            printVec(curTile->TR);
-            printVec(curTile->BL);
-            printVec(curTile->BR);
-            std::cout << "\n";
+            whichStart = true;
         }
         // Right
         else if (distCur > curTile->Right->center.y)
         {
-            printVec(curTile->Right->center);
-            printVec(curTile->Right->TL);
-            printVec(curTile->Right->TR);
-            printVec(curTile->Right->BL);
-            printVec(curTile->Right->BR);
-            std::cout << "\n";
-
-            camera.Position.z = asinh(curTile->Right->center.z);
-            camera.Position.x = asinh(curTile->Right->center.x / cosh(camera.Position.z));
+            printVec(camera.Position);
+            camera.Position.x = asinh(curTile->Right->center.x);
+            camera.Position.z = asinh(curTile->Right->center.z / cosh(camera.Position.x));
+            //camera.Position.x += 2 * 0.5306375;
             curTile = curTile->Right;
-            curTile->setStart(camera.Position);
-
-            printVec(curTile->center);
-            printVec(curTile->TL);
-            printVec(curTile->TR);
-            printVec(curTile->BL);
-            printVec(curTile->BR);
+            whichStart = false;
+            printVec(camera.Position);
+            std::cout << "\n";
         }
         // Down
         else if (distCur > curTile->Down->center.y)
         {
+            printVec(camera.Position);
             camera.Position.z = asinh(curTile->Down->center.z);
             camera.Position.x = asinh(curTile->Down->center.x / cosh(camera.Position.z));
+            //camera.Position.z -= 2 * 0.5306375;
             curTile = curTile->Down;
+            whichStart = true;
+            printVec(camera.Position);
+            std::cout << "\n";
         }
         else if (distCur > curTile->Left->center.y)
         {
             camera.Position.z = asinh(curTile->Left->center.z);
             camera.Position.x = asinh(curTile->Left->center.x / cosh(camera.Position.z));
+            //camera.Position.x -= 2 * 0.5306375;
             curTile = curTile->Left;
+            whichStart = false;
         }
 
-        curTile->setStart(camera.Position);
+        if (whichStart)
+            curTile->setStart(camera.Position);
+        else
+            curTile->setStart(camera.Position);
 
         for (Tile* t : Tile::tiles)
         {

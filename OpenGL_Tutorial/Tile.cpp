@@ -23,59 +23,82 @@ Tile::Tile(std::string n)
     num = 0;
 }
 
-void Tile::expand()
+void Tile::expand(bool create)
 {
     /*
     * DOESN'T CHECK FOR DUPLICATES YET
     */
 
     // Add to list of seen tiles
-    tiles.push_back(this);
+    //tiles.push_back(this);
 
     // Return if tile is too far away from origin
-    if (num > 2)
-        return;
+    //if (num > 2)
+    //    return;
 
-    if (Up == NULL)
+    if (create)
     {
-        Up = new Tile(name + 'U');
-        Up->Down = this;
-    }
-    if (Right == NULL)
-    {
-        Right = new Tile(name + 'R');
-        Right->Left = this;
-    }
-    if (Down == NULL)
-    {
-        Down = new Tile(name + 'D');
-        Down->Up = this;
-    }
-    if (Left == NULL)
-    {
-        Left = new Tile(name + 'L');
-        Left->Right = this;
+        if (Up == NULL)
+        {
+            Up = new Tile(name + 'U');
+            Up->Down = this;
+            created.push_back(Up);
+            setUp(Up);
+            Up->connectInTiles();
+        }
+        if (Right == NULL)
+        {
+            Right = new Tile(name + 'R');
+            Right->Left = this;
+            created.push_back(Right);
+            setRight(Right);
+            Right->connectInTiles();
+        }
+        if (Down == NULL)
+        {
+            Down = new Tile(name + 'D');
+            Down->Up = this;
+            created.push_back(Down);
+            setDown(Down);
+            Down->connectInTiles();
+        }
+        if (Left == NULL)
+        {
+            Left = new Tile(name + 'L');
+            Left->Right = this;
+            created.push_back(Left);
+            setLeft(Left);
+            Left->connectInTiles();
+        }
     }
 
-    if (!Up->inTiles())
+    if (Up && !Up->inTiles())
     {
         setUp(Up);
-        Up->expand();
+        next.push_back(Up);
+        tiles.push_back(Up);
+        //Up->expand();
     }
-    if (!Right->inTiles())
+    if (Right && !Right->inTiles())
     {
         setRight(Right);
-        Right->expand();
+        next.push_back(Right);
+        tiles.push_back(Right);
+        //Right->expand();
     }
-    if (!Down->inTiles())
+    if (Down && !Down->inTiles())
     {
         setDown(Down);
-        Down->expand();
+        next.push_back(Down);
+        tiles.push_back(Down);
+        //Down->expand();
     }
-    if (!Left->inTiles())
+    if (Left && !Left->inTiles())
     {
         setLeft(Left);
-        Left->expand();
+        next.push_back(Left);
+        tiles.push_back(Left);
+        //Left->expand();
     }
 }
 
@@ -100,48 +123,199 @@ void Tile::setStart(glm::vec3 relPos)
     this->BL = translateX(translateZ(og_BL, relPos.z), relPos.x);
     this->BR = translateX(translateZ(og_BR, relPos.z), relPos.x);
 
+    /*this->center = translateXZ(og, relPos.x, relPos.z);
+    this->TL = translateXZ(og_TL, relPos.x, relPos.z);
+    this->TR = translateXZ(og_TR, relPos.x, relPos.z);
+    this->BL = translateXZ(og_BL, relPos.x, relPos.z);
+    this->BR = translateXZ(og_BR, relPos.x, relPos.z);*/
+
+    std::vector<Tile*> copy;
+
+    next.clear();
+    next.push_back(this);
+
     tiles.clear();
-    this->expand();
+    tiles.push_back(this);
+
+    created.clear();
+
+    int breadth = 6;
+    for (int i = 0; i <= breadth; i++)
+    {
+        copy.clear();
+        for (Tile* t : next)
+            copy.push_back(t);
+        next.clear();
+        created.clear();
+        if (i <= breadth-4)
+        {
+            for (Tile* t : copy)
+                t->expand(true);
+        }
+        else
+        {
+            for (Tile* t : copy)
+                t->expand(false);
+        }
+
+        for (Tile* t : created)
+        {
+            t->connectInTiles();
+        }
+    }
 }
 
-void Tile::setRight(Tile* R)
+void Tile::setRight(Tile* t)
 {
-    R->center = extend(this->center, midpoint(this->TR, this->BR));
-    R->TL = this->TR;
-    R->BL = this->BR;
-    R->TR = extend(R->BL, R->center);
-    R->BR = extend(R->TL, R->center);
-    R->num = num + 1;
+    t->center = getRight();
+
+    if (t->Left && t->Left == this)
+    {
+        t->TL = this->TR;
+        t->BL = this->BR;
+        t->TR = extend(t->BL, t->center);
+        t->BR = extend(t->TL, t->center);
+    }
+    if (t->Down && t->Down == this)
+    {
+        t->BL = this->TR;
+        t->BR = this->BR;
+        t->TR = extend(t->BL, t->center);
+        t->TL = extend(t->BR, t->center);
+    }
+    if (t->Up && t->Up == this)
+    {
+        t->TR = this->TR;
+        t->TL = this->BR;
+        t->BR = extend(t->TL, t->center);
+        t->BL = extend(t->TR, t->center);
+    }
+    if (t->Right && t->Right == this)
+    {
+        t->BR = this->TR;
+        t->TR = this->BR;
+        t->TL = extend(t->BR, t->center);
+        t->BL = extend(t->TR, t->center);
+    }
 }
 
-void Tile::setLeft(Tile* L)
+void Tile::setLeft(Tile* t)
 {
-    L->center = extend(this->center, midpoint(this->TL, this->BL));
-    L->TR = this->TL;
-    L->BR = this->BL;
-    L->TL = extend(L->BR, L->center);
-    L->BL = extend(L->TR, L->center);
-    L->num = num + 1;
+    t->center = getLeft();
+
+    if (t->Left && t->Left == this)
+    {
+        t->TL = this->BL;
+        t->BL = this->TL;
+        t->TR = extend(t->BL, t->center);
+        t->BR = extend(t->TL, t->center);
+    }
+    if (t->Down && t->Down == this)
+    {
+        t->BL = this->BL;
+        t->BR = this->TL;
+        t->TR = extend(t->BL, t->center);
+        t->TL = extend(t->BR, t->center);
+    }
+    if (t->Up && t->Up == this)
+    {
+        t->TR = this->BL;
+        t->TL = this->TL;
+        t->BR = extend(t->TL, t->center);
+        t->BL = extend(t->TR, t->center);
+    }
+    if (t->Right && t->Right == this)
+    {
+        t->BR = this->BL;
+        t->TR = this->TL;
+        t->TL = extend(t->BR, t->center);
+        t->BL = extend(t->TR, t->center);
+    }
 }
 
-void Tile::setUp(Tile* U)
+void Tile::setUp(Tile* t)
 {
-    U->center = extend(this->center, midpoint(this->TL, this->TR));
-    U->BL = this->TL;
-    U->BR = this->TR;
-    U->TL = extend(U->BR, U->center);
-    U->TR = extend(U->BL, U->center);
-    U->num = num + 1;
+    t->center = getUp();
+
+    if (t->Left && t->Left == this)
+    {
+        t->TL = this->TL;
+        t->BL = this->TR;
+        t->TR = extend(t->BL, t->center);
+        t->BR = extend(t->TL, t->center);
+    }
+    if (t->Down && t->Down == this)
+    {
+        t->BL = this->TL;
+        t->BR = this->TR;
+        t->TR = extend(t->BL, t->center);
+        t->TL = extend(t->BR, t->center);
+    }
+    if (t->Up && t->Up == this)
+    {
+        t->TR = this->TL;
+        t->TL = this->TR;
+        t->BR = extend(t->TL, t->center);
+        t->BL = extend(t->TR, t->center);
+    }
+    if (t->Right && t->Right == this)
+    {
+        t->BR = this->TL;
+        t->TR = this->TR;
+        t->TL = extend(t->BR, t->center);
+        t->BL = extend(t->TR, t->center);
+    }
 }
 
-void Tile::setDown(Tile* D)
+void Tile::setDown(Tile* t)
 {
-    D->center = extend(this->center, midpoint(this->BL, this->BR));
-    D->TL = this->BL;
-    D->TR = this->BR;
-    D->BL = extend(D->TR, D->center);
-    D->BR = extend(D->TL, D->center);
-    D->num = num + 1;
+    t->center = getDown();
+
+    if (t->Left && t->Left == this)
+    {
+        t->TL = this->BR;
+        t->BL = this->BL;
+        t->TR = extend(t->BL, t->center);
+        t->BR = extend(t->TL, t->center);
+    }
+    if (t->Down && t->Down == this)
+    {
+        t->BL = this->BR;
+        t->BR = this->BL;
+        t->TR = extend(t->BL, t->center);
+        t->TL = extend(t->BR, t->center);
+    }
+    if (t->Up && t->Up == this)
+    {
+        t->TR = this->BR;
+        t->TL = this->BL;
+        t->BR = extend(t->TL, t->center);
+        t->BL = extend(t->TR, t->center);
+    }
+    if (t->Right && t->Right == this)
+    {
+        t->BR = this->BR;
+        t->TR = this->BL;
+        t->TL = extend(t->BR, t->center);
+        t->BL = extend(t->TR, t->center);
+    }
+}
+
+glm::vec3 Tile::getRight()
+{
+    return extend(center, midpoint(TR, BR));
+}
+glm::vec3 Tile::getLeft()
+{
+    return extend(center, midpoint(TL, BL));
+}
+glm::vec3 Tile::getUp()
+{
+    return extend(center, midpoint(TL, TR));
+}
+glm::vec3 Tile::getDown()
+{
+    return extend(center, midpoint(BL, BR));
 }
 
 bool Tile::inTiles()
@@ -149,4 +323,84 @@ bool Tile::inTiles()
     if (std::find(tiles.begin(), tiles.end(), this) != tiles.end())
         return true;
     return false;
+}
+
+void Tile::connectInTiles()
+{
+    if (!Up)
+    {
+        for (Tile* t2 : tiles)
+        {
+            if (close(getUp(), t2->center))
+            {
+                if (!t2->Up && close(center, t2->getUp()))
+                    t2->Up = this;
+                if (!t2->Right && close(center, t2->getRight()))
+                    t2->Right = this;
+                if (!t2->Left && close(center, t2->getLeft()))
+                    t2->Left = this;
+                if (!t2->Down && close(center, t2->getDown()))
+                    t2->Down = this;
+                Up = t2;
+                break;
+            }
+        }
+    }
+    if (!Down)
+    {
+        for (Tile* t2 : tiles)
+        {
+            if (close(getDown(), t2->center))
+            {
+                if (!t2->Up && close(center, t2->getUp()))
+                    t2->Up = this;
+                if (!t2->Right && close(center, t2->getRight()))
+                    t2->Right = this;
+                if (!t2->Left && close(center, t2->getLeft()))
+                    t2->Left = this;
+                if (!t2->Down && close(center, t2->getDown()))
+                    t2->Down = this;
+                Down = t2;
+                break;
+            }
+        }
+    }
+    if (!Right)
+    {
+        for (Tile* t2 : tiles)
+        {
+            if (close(getRight(), t2->center))
+            {
+                if (!t2->Up && close(center, t2->getUp()))
+                    t2->Up = this;
+                if (!t2->Right && close(center, t2->getRight()))
+                    t2->Right = this;
+                if (!t2->Left && close(center, t2->getLeft()))
+                    t2->Left = this;
+                if (!t2->Down && close(center, t2->getDown()))
+                    t2->Down = this;
+                Right = t2;
+                break;
+            }
+        }
+    }
+    if (!Left)
+    {
+        for (Tile* t2 : tiles)
+        {
+            if (close(getLeft(), t2->center))
+            {
+                if (!t2->Up && close(center, t2->getUp()))
+                    t2->Up = this;
+                if (!t2->Right && close(center, t2->getRight()))
+                    t2->Right = this;
+                if (!t2->Left && close(center, t2->getLeft()))
+                    t2->Left = this;
+                if (!t2->Down && close(center, t2->getDown()))
+                    t2->Down = this;
+                Left = t2;
+                break;
+            }
+        }
+    }
 }

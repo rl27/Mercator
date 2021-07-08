@@ -89,6 +89,14 @@ static glm::vec3 translateZ(glm::vec3 v, float dist)
     return glm::vec3(v.x, si * v.z + co * v.y, co * v.z + si * v.y);
 }
 
+// Translate vector in both directions
+static glm::vec3 translateXZ(glm::vec3 v, float xdist, float zdist)
+{
+    v = translateZ(v, atanh(sinh(zdist)));
+    v = translateX(v, xdist);
+    return v;
+}
+
 // Get hyperboloid coordinates from x/z pair
 static glm::vec3 fromOrigin(float x, float z)
 {
@@ -105,8 +113,8 @@ static glm::vec3 fromOrigin(float x, float z)
 // Check if two coords are very close
 static bool close(glm::vec3 a, glm::vec3 b)
 {
-    float dist = sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2) + pow(a[2] - b[2], 2));
-    if (dist < 0.3)
+    float dist = pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2) + pow(a[2] - b[2], 2);
+    if (dist < 0.1)
         return true;
     return false;
 }

@@ -19,6 +19,8 @@ class Tile
 {
 public:
     static std::vector<Tile*> tiles;
+    static std::vector<Tile*> next;
+    static std::vector<Tile*> created;
 
     glm::vec3 center;
     glm::vec3 TL;
@@ -36,7 +38,7 @@ public:
     Tile(std::string n);
 
     // Recursively expand in each direction
-    void expand();
+    void expand(bool create);
 
     // Set starting tile position based on relative position to its center
     void setStart(glm::vec3 relPos);
@@ -47,8 +49,15 @@ public:
     void setUp(Tile* U);
     void setDown(Tile* D);
 
+    glm::vec3 getRight();
+    glm::vec3 getLeft();
+    glm::vec3 getUp();
+    glm::vec3 getDown();
+
     // Check if in vector of tiles
     bool inTiles();
+    // Check for connections in other tiles
+    void connectInTiles();
 };
 
 #endif
