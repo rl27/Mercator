@@ -20,7 +20,7 @@ Tile::Tile(std::string n)
     BL = glm::vec3(0);
     BR = glm::vec3(0);
 
-    num = 0;
+    texture = -1;
 }
 
 void Tile::expand(bool create)
@@ -104,8 +104,6 @@ void Tile::expand(bool create)
 
 void Tile::setStart(glm::vec3 relPos)
 {
-    num = 0;
-
     // cosh(dist. between two centers) = golden ratio
     // dist = 2 * 0.5306375309525178260165094581067867429033927494693168481986051407
     // sinh(0.5306) * cosh(z) = sinh(z)

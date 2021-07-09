@@ -33,7 +33,7 @@ public:
     Tile *Down;
     std::string name;
     glm::vec4 color;
-    int num;
+    int texture;
 
     Tile(std::string n);
 

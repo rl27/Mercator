@@ -157,6 +157,8 @@
     <ClInclude Include="Tile.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="image.fs" />
+    <None Include="image.vs" />
     <None Include="lightcube.fs" />
     <None Include="lightcube.vs" />
     <None Include="shader.fs" />
