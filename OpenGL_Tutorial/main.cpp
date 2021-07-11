@@ -26,13 +26,9 @@ void printNum(float num);
 void setArray(float arr[], glm::vec3 v, int ind);
 void setAllVertices(float arr[], Tile* T);
 
-
 // Screen settings
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 800;
-
-bool blinn = true;
-bool blinnKeyPressed = false;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.2f, 0.0f));
@@ -277,8 +273,9 @@ int main()
             {
                 imageShader.use();
                 model = glm::translate(glm::mat4(1.0f), getPoincare(t->center));
-                model = glm::scale(model, glm::vec3(0.1f));
-                model = glm::translate(model, glm::vec3(0, 1.0, 0));
+                float imgScale = glm::distance(getPoincare(t->TL), getPoincare(t->BR));
+                model = glm::scale(model, glm::vec3(imgScale * 0.2f));
+                model = glm::translate(model, glm::vec3(0, 1, 0));
                 imageShader.setMat4("model", model);
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, t->texture);
@@ -333,18 +330,6 @@ void processInput(GLFWwindow* window)
         camera.StartSprint();
     else
         camera.EndSprint();
-
-    // B to toggle phong/blinn-phong
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed)
-    {
-        blinn = !blinn;
-        blinnKeyPressed = true;
-        std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
-    }
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
-    {
-        blinnKeyPressed = false;
-    }
 }
 
 // Process mouse movement

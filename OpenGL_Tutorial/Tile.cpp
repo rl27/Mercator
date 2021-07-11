@@ -137,7 +137,7 @@ void Tile::setStart(glm::vec3 relPos)
 
     created.clear();
 
-    int breadth = 6;
+    int breadth = 4;
     for (int i = 0; i <= breadth; i++)
     {
         copy.clear();
@@ -145,7 +145,7 @@ void Tile::setStart(glm::vec3 relPos)
             copy.push_back(t);
         next.clear();
         created.clear();
-        if (i <= breadth-4)
+        if (i <= breadth-2)
         {
             for (Tile* t : copy)
                 t->expand(true);
