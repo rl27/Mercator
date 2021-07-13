@@ -204,14 +204,13 @@ int main()
             float distCur = curTile->center.y;
             if (distCur > curTile->Up->center.y)
             {
-                std::cout << "Up\n\n";
+                std::cout << "Up\n";
 
                 curTile = curTile->Up;
                 camera.Position = curTile->center;
 
                 glm::vec3 reversed = reverseXZ2(curTile->TR, camera.Position.x, camera.Position.z);
-                float r = sqrt(pow(reversed.x, 2.0f) + pow(reversed.z, 2.0f));
-                float ang = acos(reversed.x / r) - M_PI / 4;
+                float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
                 curTile->angle = ang;
 
                 changed = currentFrame;
@@ -224,8 +223,7 @@ int main()
                 camera.Position = curTile->center;
 
                 glm::vec3 reversed = reverseXZ2(curTile->TR, camera.Position.x, camera.Position.z);
-                float r = sqrt(pow(reversed.x, 2.0f) + pow(reversed.z, 2.0f));
-                float ang = acos(reversed.x / r) - M_PI / 4;
+                float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
                 curTile->angle = ang;
 
                 changed = currentFrame;
@@ -238,8 +236,7 @@ int main()
                 camera.Position = curTile->center;
 
                 glm::vec3 reversed = reverseXZ2(curTile->TR, camera.Position.x, camera.Position.z);
-                float r = sqrt(pow(reversed.x, 2.0f) + pow(reversed.z, 2.0f));
-                float ang = acos(reversed.x / r) - M_PI / 4;
+                float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
                 curTile->angle = ang;
 
                 changed = currentFrame;
@@ -252,157 +249,13 @@ int main()
                 camera.Position = curTile->center;
 
                 glm::vec3 reversed = reverseXZ2(curTile->TR, camera.Position.x, camera.Position.z);
-                float r = sqrt(pow(reversed.x, 2.0f) + pow(reversed.z, 2.0f));
-                float ang = acos(reversed.x / r) - M_PI / 4;
+                float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
                 curTile->angle = ang;
 
                 changed = currentFrame;
+                curTile->setStart(camera.Position);
             }
         }
-        // Up
-        /*if (distCur > curTile->Up->center.y + 0.01)
-        {
-            Tile* t = curTile->Up;
-            if (t->Down == curTile)
-            {
-                camera.Position.z = asinh(curTile->Up->center.z);
-                camera.Position.x = asinh(curTile->Up->center.x / cosh(camera.Position.z));
-            }
-            else if (t->Left == curTile)
-            {
-                camera.Position.z = asinh(curTile->Up->center.z);
-                camera.Position.x = asinh(curTile->Up->center.x / cosh(camera.Position.z));
-
-                float temp = camera.Position.x;
-                camera.Position.x = camera.Position.z;
-                camera.Position.z = -temp;
-            }
-            else if (t->Right == curTile)
-            {
-                camera.Position.z = asinh(curTile->Up->center.z);
-                camera.Position.x = asinh(curTile->Up->center.x / cosh(camera.Position.z));
-
-                float temp = camera.Position.x;
-                camera.Position.x = -camera.Position.z;
-                camera.Position.z = temp;
-            }
-            else if (t->Up == curTile)
-            {
-                camera.Position.z = asinh(curTile->Up->center.z) * -1;
-                camera.Position.x = asinh(curTile->Up->center.x / cosh(camera.Position.z)) * -1;
-            }
-
-            
-            curTile = curTile->Up;
-        }
-        // Right
-        else if (distCur > curTile->Right->center.y + 0.01)
-        {
-            Tile* t = curTile->Right;
-            if (t->Left == curTile)
-            {
-                camera.Position.z = asinh(curTile->Right->center.z);
-                camera.Position.x = asinh(curTile->Right->center.x / cosh(camera.Position.z));
-            }
-            else if (t->Up == curTile)
-            {
-                camera.Position.z = asinh(curTile->Right->center.z);
-                camera.Position.x = asinh(curTile->Right->center.x / cosh(camera.Position.z));
-
-                float temp = camera.Position.x;
-                camera.Position.x = camera.Position.z;
-                camera.Position.z = -temp;
-            }
-            else if (t->Down == curTile)
-            {
-                camera.Position.z = asinh(curTile->Right->center.z);
-                camera.Position.x = asinh(curTile->Right->center.x / cosh(camera.Position.z));
-
-                float temp = camera.Position.x;
-                camera.Position.x = -camera.Position.z;
-                camera.Position.z = temp;
-            }
-            else if (t->Right == curTile)
-            {
-                camera.Position.z = asinh(curTile->Right->center.z) * -1;
-                camera.Position.x = asinh(curTile->Right->center.x / cosh(camera.Position.z)) * -1;
-            }
-
-            curTile = curTile->Right;
-        }
-        // Down
-        else if (distCur > curTile->Down->center.y + 0.01)
-        {
-            Tile* t = curTile->Down;
-            if (t->Up == curTile)
-            {
-                camera.Position.z = asinh(curTile->Down->center.z);
-                camera.Position.x = asinh(curTile->Down->center.x / cosh(camera.Position.z));
-            }
-            else if (t->Right == curTile)
-            {
-                camera.Position.z = asinh(curTile->Down->center.z);
-                camera.Position.x = asinh(curTile->Down->center.x / cosh(camera.Position.z));
-
-                float temp = camera.Position.x;
-                camera.Position.x = camera.Position.z;
-                camera.Position.z = -temp;
-            }
-            else if (t->Left == curTile)
-            {
-                camera.Position.z = asinh(curTile->Down->center.z);
-                camera.Position.x = asinh(curTile->Down->center.x / cosh(camera.Position.z));
-
-                float temp = camera.Position.x;
-                camera.Position.x = -camera.Position.z;
-                camera.Position.z = temp;
-            }
-            else if (t->Down == curTile)
-            {
-                camera.Position.z = asinh(curTile->Down->center.z) * -1;
-                camera.Position.x = asinh(curTile->Down->center.x / cosh(camera.Position.z)) * -1;
-            }
-
-            curTile = curTile->Down;
-        }
-        else if (distCur > curTile->Left->center.y + 0.01)
-        {
-            Tile* t = curTile->Left;
-            if (t->Right == curTile)
-            {
-                camera.Position.z = asinh(curTile->Left->center.z);
-                camera.Position.x = asinh(curTile->Left->center.x / cosh(camera.Position.z));
-                std::cout << "asdf\n";
-            }
-            else if (t->Down == curTile)
-            {
-                camera.Position.z = asinh(curTile->Left->center.z);
-                camera.Position.x = asinh(curTile->Left->center.x / cosh(camera.Position.z));
-
-                float temp = camera.Position.x;
-                camera.Position.x = camera.Position.z;
-                camera.Position.z = -temp;
-                std::cout << "asdf2\n";
-            }
-            else if (t->Up == curTile)
-            {
-                camera.Position.z = asinh(curTile->Left->center.z);
-                camera.Position.x = asinh(curTile->Left->center.x / cosh(camera.Position.z));
-
-                float temp = camera.Position.x;
-                camera.Position.x = -camera.Position.z;
-                camera.Position.z = temp;
-                std::cout << "asdf3\n";
-            }
-            else if (t->Left == curTile)
-            {
-                camera.Position.z = asinh(curTile->Left->center.z) * -1;
-                camera.Position.x = asinh(curTile->Left->center.x / cosh(camera.Position.z)) * -1;
-                std::cout << "asdf4\n";
-            }
-
-            curTile = curTile->Left;
-        }*/
 
         curTile->setStart(camera.Position);
 
