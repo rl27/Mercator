@@ -21,6 +21,7 @@ public:
     static std::vector<Tile*> tiles;
     static std::vector<Tile*> next;
     static std::vector<Tile*> created;
+    static std::vector<Tile*> all;
 
     glm::vec3 center;
     glm::vec3 TL;
@@ -34,6 +35,7 @@ public:
     std::string name;
     glm::vec4 color;
     int texture;
+    float angle;
 
     Tile(std::string n);
 

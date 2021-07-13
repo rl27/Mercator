@@ -21,6 +21,7 @@ Tile::Tile(std::string n)
     BR = glm::vec3(0);
 
     texture = -1;
+    angle = 0;
 }
 
 void Tile::expand(bool create)
@@ -45,6 +46,8 @@ void Tile::expand(bool create)
             created.push_back(Up);
             setUp(Up);
             Up->connectInTiles();
+
+            all.push_back(Up);
         }
         if (Right == NULL)
         {
@@ -53,6 +56,8 @@ void Tile::expand(bool create)
             created.push_back(Right);
             setRight(Right);
             Right->connectInTiles();
+
+            all.push_back(Right);
         }
         if (Down == NULL)
         {
@@ -61,6 +66,8 @@ void Tile::expand(bool create)
             created.push_back(Down);
             setDown(Down);
             Down->connectInTiles();
+
+            all.push_back(Down);
         }
         if (Left == NULL)
         {
@@ -69,6 +76,8 @@ void Tile::expand(bool create)
             created.push_back(Left);
             setLeft(Left);
             Left->connectInTiles();
+
+            all.push_back(Left);
         }
     }
 
@@ -110,22 +119,16 @@ void Tile::setStart(glm::vec3 relPos)
     // z = 0.6268696629061778141444633762119364014776097856510327417726257885
 
     glm::vec3 og(0, 1, 0);
-    glm::vec3 og_TR = translateX(translateZ(og, 0.6268697), 0.5306375);
-    glm::vec3 og_TL = translateX(translateZ(og, 0.6268697), -0.5306375);
-    glm::vec3 og_BR = translateX(translateZ(og, -0.6268697), 0.5306375);
-    glm::vec3 og_BL = translateX(translateZ(og, -0.6268697), -0.5306375);
+    glm::vec3 og_TR = rotate(translateXZ(og, 0.5306375, 0.5306375), angle);
+    glm::vec3 og_TL = rotate(translateXZ(og, -0.5306375, 0.5306375), angle);
+    glm::vec3 og_BR = rotate(translateXZ(og, 0.5306375, -0.5306375), angle);
+    glm::vec3 og_BL = rotate(translateXZ(og, -0.5306375, -0.5306375), angle);
 
-    this->center = translateX(translateZ(og, relPos.z), relPos.x);
-    this->TL = translateX(translateZ(og_TL, relPos.z), relPos.x);
-    this->TR = translateX(translateZ(og_TR, relPos.z), relPos.x);
-    this->BL = translateX(translateZ(og_BL, relPos.z), relPos.x);
-    this->BR = translateX(translateZ(og_BR, relPos.z), relPos.x);
-
-    /*this->center = translateXZ(og, relPos.x, relPos.z);
-    this->TL = translateXZ(og_TL, relPos.x, relPos.z);
-    this->TR = translateXZ(og_TR, relPos.x, relPos.z);
-    this->BL = translateXZ(og_BL, relPos.x, relPos.z);
-    this->BR = translateXZ(og_BR, relPos.x, relPos.z);*/
+    center = translateXZ2(og, relPos.x, relPos.z);
+    TR = translateXZ2(og_TR, relPos.x, relPos.z);
+    TL = translateXZ2(og_TL, relPos.x, relPos.z);
+    BR = translateXZ2(og_BR, relPos.x, relPos.z);
+    BL = translateXZ2(og_BL, relPos.x, relPos.z);
 
     std::vector<Tile*> copy;
 

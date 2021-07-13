@@ -89,11 +89,62 @@ static glm::vec3 translateZ(glm::vec3 v, float dist)
     return glm::vec3(v.x, si * v.z + co * v.y, co * v.z + si * v.y);
 }
 
+// To find a symmetric translation, from (0,1,0), find x->z, and find z->x, for any variable x,z.
+// Since one value must be modified, let it be f(x) or f(z). Then set the values 
+// equal to each other and solve.
+// 
+// Previous symmetric translation that modified the second value:
+//     v = translateX(v, xdist);
+//     v = translateZ(v, asinh(sinh(zdist)/cosh(xdist)));
+// 
+// Symmetric translation that modifies first value:
+//   sinh(f(x)) = sinh(x) * cosh(asinh(sinh(z) * cosh(f(x))))
+//              = sinh(x) * sqrt( 1 + (sinh(z) * cosh(f(x)))^2 )
+// Note that cosh(asinh(w)) = sqrt(1 + w^2)
+// Solve to get f(x) = acosh(sqrt((1+a)/(1-ab))), where a = (sinhx)^2  and  b = (sinhz)^2
+
 // Translate vector in both directions
 static glm::vec3 translateXZ(glm::vec3 v, float xdist, float zdist)
 {
-    v = translateZ(v, atanh(sinh(zdist)));
+    float a = pow(sinh(xdist), 2.0f);
+    float b = pow(sinh(zdist), 2.0f);
+    float fx = acosh(sqrt((1 + a) / (1 - a*b)));
+    if (xdist > 0)
+        v = translateX(v, fx);
+    else
+        v = translateX(v, -fx);
+    v = translateZ(v, zdist);
+    return v;
+}
+
+static glm::vec3 translateZX(glm::vec3 v, float xdist, float zdist)
+{
+    float a = pow(sinh(zdist), 2.0f);
+    float b = pow(sinh(xdist), 2.0f);
+    float fz = acosh(sqrt((1 + a) / (1 - a * b)));
+    if (zdist > 0)
+        v = translateZ(v, fz);
+    else
+        v = translateZ(v, -fz);
     v = translateX(v, xdist);
+    return v;
+}
+
+static glm::vec3 translateXZ2(glm::vec3 v, float x, float z)
+{
+    float xdist = asinh(x);
+    v = translateX(v, xdist);
+    float zdist = asinh(z / cosh(xdist));
+    v = translateZ(v, zdist);
+    return v;
+}
+
+static glm::vec3 reverseXZ2(glm::vec3 v, float x, float z)
+{
+    float xdist = asinh(x);
+    float zdist = asinh(z / cosh(xdist));
+    v = translateZ(v, -zdist);
+    v = translateX(v, -xdist);
     return v;
 }
 
@@ -117,6 +168,12 @@ static bool close(glm::vec3 a, glm::vec3 b)
     if (dist < 0.1)
         return true;
     return false;
+}
+
+// Counter-clockwise rotation, preserving y
+static glm::vec3 rotate(glm::vec3 v, float angle)
+{
+    return glm::vec3(v.x * cos(angle) - v.z * sin(angle), v.y, v.x * sin(angle) + v.z * cos(angle));
 }
 
 #endif
