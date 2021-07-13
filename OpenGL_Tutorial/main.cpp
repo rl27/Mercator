@@ -40,7 +40,7 @@ float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 float changed = 0.0f;   // Time of last tile change
 
-// Track tiles
+// Static vectors for tracking tiles
 std::vector<Tile*> Tile::tiles;
 std::vector<Tile*> Tile::next;
 std::vector<Tile*> Tile::created;
@@ -176,9 +176,8 @@ int main()
         // Clear color buffer and depth buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Make shader and rendering calls use our shader program (and the linked shaders)
+        // Setup shader
         shader.use();
-        //shader.setVec3("viewPos", glm::vec3(camera.Position);
 
         glm::mat4 model = glm::mat4(1.0f);
         shader.setMat4("model", model);
@@ -194,11 +193,13 @@ int main()
         //transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
         shader.setMat4("transform", transform);
 
+        // Setup image shader
         imageShader.use();
         imageShader.setMat4("model", model);
         imageShader.setMat4("view", view);
         imageShader.setMat4("projection", projection);
         
+        // Check for tile change
         if (currentFrame - changed > 0.3)
         {
             float distCur = curTile->center.y;
@@ -257,8 +258,10 @@ int main()
             }
         }
 
+        // Update tiles to be rendered based on current tile
         curTile->setStart(camera.Position);
 
+        // Draw tiles (and images)
         for (Tile* t : Tile::tiles)
         {
             shader.use();

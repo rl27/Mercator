@@ -26,17 +26,6 @@ Tile::Tile(std::string n)
 
 void Tile::expand(bool create)
 {
-    /*
-    * DOESN'T CHECK FOR DUPLICATES YET
-    */
-
-    // Add to list of seen tiles
-    //tiles.push_back(this);
-
-    // Return if tile is too far away from origin
-    //if (num > 2)
-    //    return;
-
     if (create)
     {
         if (Up == NULL)
@@ -86,28 +75,24 @@ void Tile::expand(bool create)
         setUp(Up);
         next.push_back(Up);
         tiles.push_back(Up);
-        //Up->expand();
     }
     if (Right && !Right->inTiles())
     {
         setRight(Right);
         next.push_back(Right);
         tiles.push_back(Right);
-        //Right->expand();
     }
     if (Down && !Down->inTiles())
     {
         setDown(Down);
         next.push_back(Down);
         tiles.push_back(Down);
-        //Down->expand();
     }
     if (Left && !Left->inTiles())
     {
         setLeft(Left);
         next.push_back(Left);
         tiles.push_back(Left);
-        //Left->expand();
     }
 }
 
@@ -140,7 +125,7 @@ void Tile::setStart(glm::vec3 relPos)
 
     created.clear();
 
-    int breadth = 4;
+    int breadth = 5;
     for (int i = 0; i <= breadth; i++)
     {
         copy.clear();

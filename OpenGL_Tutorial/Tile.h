@@ -13,8 +13,9 @@
 #include <iostream>
 
 /* Tile class for square tiles.
-* Order-5 square tiling is achieved by having a distance of phi (golden ratio) between the centers of neighboring tiles.
-*/
+* Order-5 square tiling (5 squares at each corner) is achieved by having a hyperbolic distance
+* of phi (golden ratio) between the centers of neighboring tiles. */
+
 class Tile
 {
 public:
@@ -39,26 +40,29 @@ public:
 
     Tile(std::string n);
 
-    // Recursively expand in each direction
+    // Expand in all four directions, creating new tiles if necessary
     void expand(bool create);
 
     // Set starting tile position based on relative position to its center
+    // Calls expand() repeatedly, breadth-first
     void setStart(glm::vec3 relPos);
 
-    // Set neighboring tiles
+    // Update center and corners of neighboring tiles
     void setRight(Tile* R);
     void setLeft(Tile* L);
     void setUp(Tile* U);
     void setDown(Tile* D);
 
+    // Get position of center of possible neighbors
     glm::vec3 getRight();
     glm::vec3 getLeft();
     glm::vec3 getUp();
     glm::vec3 getDown();
 
-    // Check if in vector of tiles
+    // Check if tile is in vector of all currently updated tiles
     bool inTiles();
-    // Check for connections in other tiles
+
+    // Checks for unconnected neighboring tiles and connects them
     void connectInTiles();
 };
 

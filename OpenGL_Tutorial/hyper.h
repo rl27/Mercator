@@ -71,7 +71,7 @@ static glm::vec3 getBeltrami(glm::vec3 v)
 
 /*******************
 * Note on translations: do in reverse order. I.e. to get RUL, do left -> up -> right translations.
-*/
+********************/
 
 // Translate vector in x-direction
 static glm::vec3 translateX(glm::vec3 v, float dist)
@@ -117,19 +117,7 @@ static glm::vec3 translateXZ(glm::vec3 v, float xdist, float zdist)
     return v;
 }
 
-static glm::vec3 translateZX(glm::vec3 v, float xdist, float zdist)
-{
-    float a = pow(sinh(zdist), 2.0f);
-    float b = pow(sinh(xdist), 2.0f);
-    float fz = acosh(sqrt((1 + a) / (1 - a * b)));
-    if (zdist > 0)
-        v = translateZ(v, fz);
-    else
-        v = translateZ(v, -fz);
-    v = translateX(v, xdist);
-    return v;
-}
-
+// XZ translation that preserves x and z. I.e. translating x and z from the origin gets (x, _, z).
 static glm::vec3 translateXZ2(glm::vec3 v, float x, float z)
 {
     float xdist = asinh(x);
@@ -139,6 +127,7 @@ static glm::vec3 translateXZ2(glm::vec3 v, float x, float z)
     return v;
 }
 
+// Reverse of XZ2. Will reverse a translateXZ2 call given the same x and z.
 static glm::vec3 reverseXZ2(glm::vec3 v, float x, float z)
 {
     float xdist = asinh(x);
