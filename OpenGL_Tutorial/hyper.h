@@ -117,6 +117,37 @@ static glm::vec3 translateXZ(glm::vec3 v, float xdist, float zdist)
     return v;
 }
 
+// Reverse translateXZ
+static glm::vec3 reverseXZ(glm::vec3 v, float xdist, float zdist)
+{
+    float a = pow(sinh(xdist), 2.0f);
+    float b = pow(sinh(zdist), 2.0f);
+    float fx = acosh(sqrt((1 + a) / (1 - a * b)));
+    v = translateZ(v, -zdist);
+    if (xdist > 0)
+        v = translateX(v, -fx);
+    else
+        v = translateX(v, fx);
+    return v;
+}
+
+// Get x and z for translateXZ from vector v. translateXZ(origin, x, z) will give v.
+static glm::vec3 getXZ(glm::vec3 v)
+{
+    float fx = asinh(v.x);
+    float zdist = asinh(v.z / cosh(fx));
+
+    float left = pow(cosh(fx), 2.0f);
+    float a = (left - 1) / (1 + left * pow(sinh(zdist), 2.0f));
+    float xdist = 0;
+    if (fx > 0)
+        xdist = asinh(sqrt(a));
+    else
+        xdist = -asinh(sqrt(a));
+
+    return glm::vec3(xdist, 0, zdist);
+}
+
 // XZ translation that preserves x and z. I.e. translating x and z from the origin gets (x, _, z).
 static glm::vec3 translateXZ2(glm::vec3 v, float x, float z)
 {

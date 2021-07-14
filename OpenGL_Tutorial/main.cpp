@@ -146,11 +146,9 @@ int main()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-
     /*unsigned int diffuseMap = loadTexture("container2.png");
     unsigned int specularMap = loadTexture("container2_specular.png");
     unsigned int floorTexture = loadTexture("wood.png");*/
-
 
     Tile* curTile = new Tile("O");
     Tile::all.push_back(curTile);
@@ -158,7 +156,6 @@ int main()
 
     curTile->Down->texture = loadTexture("gaben.png");
     curTile->Down->Right->texture = loadTexture("gaben.png");
-
 
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
@@ -208,9 +205,9 @@ int main()
                 std::cout << "Up\n";
 
                 curTile = curTile->Up;
-                camera.Position = curTile->center;
+                camera.Position = getXZ(curTile->center);
 
-                glm::vec3 reversed = reverseXZ2(curTile->TR, camera.Position.x, camera.Position.z);
+                glm::vec3 reversed = reverseXZ(curTile->TR, camera.Position.x, camera.Position.z);
                 float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
                 curTile->angle = ang;
 
@@ -221,9 +218,9 @@ int main()
                 std::cout << "Down\n";
 
                 curTile = curTile->Down;
-                camera.Position = curTile->center;
+                camera.Position = getXZ(curTile->center);
 
-                glm::vec3 reversed = reverseXZ2(curTile->TR, camera.Position.x, camera.Position.z);
+                glm::vec3 reversed = reverseXZ(curTile->TR, camera.Position.x, camera.Position.z);
                 float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
                 curTile->angle = ang;
 
@@ -234,9 +231,9 @@ int main()
                 std::cout << "Right\n";
 
                 curTile = curTile->Right;
-                camera.Position = curTile->center;
+                camera.Position = getXZ(curTile->center);
 
-                glm::vec3 reversed = reverseXZ2(curTile->TR, camera.Position.x, camera.Position.z);
+                glm::vec3 reversed = reverseXZ(curTile->TR, camera.Position.x, camera.Position.z);
                 float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
                 curTile->angle = ang;
 
@@ -247,14 +244,13 @@ int main()
                 std::cout << "Left\n";
 
                 curTile = curTile->Left;
-                camera.Position = curTile->center;
+                camera.Position = getXZ(curTile->center);
 
-                glm::vec3 reversed = reverseXZ2(curTile->TR, camera.Position.x, camera.Position.z);
+                glm::vec3 reversed = reverseXZ(curTile->TR, camera.Position.x, camera.Position.z);
                 float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
                 curTile->angle = ang;
 
                 changed = currentFrame;
-                curTile->setStart(camera.Position);
             }
         }
 
