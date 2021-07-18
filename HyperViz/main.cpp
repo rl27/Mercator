@@ -157,6 +157,14 @@ int main()
     curTile->Down->texture = loadTexture("gaben.png");
     curTile->Down->Right->texture = loadTexture("gaben.png");
 
+    /*glm::vec3 test(0, 1, 0);
+    test = translateX(test, 0.6);
+    test = translateZ(test, 0.6);
+    test = translateX(test, -0.6);
+    test = translateZ(test, -0.6);
+    test = translateX(test, 0.6);
+    printVec(test);*/
+
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
     {
