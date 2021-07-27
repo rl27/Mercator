@@ -119,6 +119,21 @@ void Tile::setStart(glm::vec3 relPos)
     glm::vec3 og_BR = rotate(translateXZ(og, 0.5306375, -0.5306375), angle);
     glm::vec3 og_BL = rotate(translateXZ(og, -0.5306375, -0.5306375), angle);
 
+    /*center = translateXZ(og, 0, 0);
+    TR = translateXZ(og_TR, 0, 0);
+    TL = translateXZ(og_TL, 0, 0);
+    BR = translateXZ(og_BR, 0, 0);
+    BL = translateXZ(og_BL, 0, 0);
+
+    glm::vec3 top = midpoint(TL, TR);
+    glm::vec3 a = line(center, top, relPos.z * dist(center, top));
+
+    glm::vec3 right = midpoint(TR, BR);
+    glm::vec3 target = line(right, TR, relPos.z * dist(right, TR));
+    glm::vec3 b = line(a, target, relPos.x * dist(a, target));
+
+    relPos = getXZ(b);*/
+
     center = translateXZ(og, relPos.x, relPos.z);
     TR = translateXZ(og_TR, relPos.x, relPos.z);
     TL = translateXZ(og_TL, relPos.x, relPos.z);

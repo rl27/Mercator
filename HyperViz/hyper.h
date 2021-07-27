@@ -56,6 +56,13 @@ static glm::vec3 extend(glm::vec3 a, glm::vec3 b)
     return a * cosh(2 * w) + proj * sinh(2 * w);
 }
 
+// Form line from a to b and return c, such that the dist from a to c is d.
+static glm::vec3 line(glm::vec3 a, glm::vec3 b, float d)
+{
+    glm::vec3 proj = hypNormalize(b - minkProjection(b, a));
+    return a * cosh(d) + proj * sinh(d);
+}
+
 // Get Poincare projection from hyperboloid to (0,-1,0)
 static glm::vec3 getPoincare(glm::vec3 v)
 {
