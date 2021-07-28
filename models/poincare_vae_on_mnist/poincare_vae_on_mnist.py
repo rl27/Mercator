@@ -8,6 +8,8 @@ import torchvision.transforms.functional as F
 from models.hyperbolic_generative_model import HyperbolicGenerativeModel
 from collections import namedtuple
 import json
+from torchvision.utils import make_grid
+from PIL import Image
 
 
 class PoincareVAEonMNIST(HyperbolicGenerativeModel):
@@ -27,8 +29,12 @@ class PoincareVAEonMNIST(HyperbolicGenerativeModel):
         with torch.no_grad():
             px_z_params = self.model.dec(torch.tensor(coords).unsqueeze(dim=0).unsqueeze(dim=0))
             img_tensor = get_mean_param(px_z_params).squeeze(dim=0).squeeze(dim=0)
-        return F.to_pil_image(img_tensor)
+        grid = make_grid(img_tensor.data.cpu())
+        # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
+        ndarr = grid.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+        im = Image.fromarray(ndarr)
+        return im
 
 
-im = PoincareVAEonMNIST().generate_image_from_coords([0.8587, -0.3349])
+im = PoincareVAEonMNIST().generate_image_from_coords([-0.3, -0.4])
 im.save('lol.png', "PNG")
