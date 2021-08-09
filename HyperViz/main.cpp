@@ -11,7 +11,11 @@
 
 #include <iostream>
 #include <string>
+#include <thread>
+#include <cstdio>
 #include <math.h>
+
+using namespace std;
 
 // Callback & helper functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -20,6 +24,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
 
+// Printing glm::vec3 and floats
 void printVec(glm::vec3 v);
 void printNum(float num);
 
@@ -40,11 +45,24 @@ float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 float changed = 0.0f;   // Time of last tile change
 
+// Limit the max number of threads (performance will absolutely tank otherwise)
+const unsigned int MAX_THREADS = 4;
+unsigned int numThreads = 0;
+
 // Static vectors for tracking tiles
-std::vector<Tile*> Tile::tiles;
-std::vector<Tile*> Tile::next;
-std::vector<Tile*> Tile::created;
-std::vector<Tile*> Tile::all;
+vector<Tile*> Tile::tiles;
+vector<Tile*> Tile::next;
+vector<Tile*> Tile::created;
+queue<Tile*> Tile::all;
+
+vector<Tile*> allLocal;
+
+// Call python script to generate image; run in parallel to OpenGL
+void genImg(glm::vec3 coords, Tile* t, unsigned int ind, unsigned int placeholder);
+
+// Manage image generations
+unsigned int index = 0;
+queue<Tile*> pending;
 
 int main()
 {
@@ -58,10 +76,10 @@ int main()
     glfwWindowHint(GLFW_SAMPLES, 4); // Multisampling
 
     // Create window object
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "HyperViz", NULL, NULL);
     if (window == NULL)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        cout << "Failed to create GLFW window" << endl;
         glfwTerminate();
         return -1;
     }
@@ -80,7 +98,7 @@ int main()
     // Initialize GLAD before calling an OpenGL function
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        cout << "Failed to initialize GLAD" << endl;
         return -1;
     }
 
@@ -150,20 +168,20 @@ int main()
     unsigned int specularMap = loadTexture("container2_specular.png");
     unsigned int floorTexture = loadTexture("wood.png");*/
 
+    unsigned int placeholder = loadTexture("placeholder.png");
+
+    // Initialize origin
     Tile* curTile = new Tile("O");
-    Tile::all.push_back(curTile);
-    curTile->setStart(glm::vec3(0, 0, 0));
+    allLocal.push_back(curTile);
 
-    curTile->Down->texture = loadTexture("gaben.png");
-    curTile->Down->Right->texture = loadTexture("gaben.png");
+    //curTile->setStart(glm::vec3(0, 0, 0));
+    //curTile->Down->texture = loadTexture("gaben.png");
 
-    /*glm::vec3 test(0, 1, 0);
-    test = translateX(test, 0.6);
-    test = translateZ(test, 0.6);
-    test = translateX(test, -0.6);
-    test = translateZ(test, -0.6);
-    test = translateX(test, 0.6);
-    printVec(test);*/
+
+    // Test of future, async, launch::async
+    // #include <future>
+    //auto fut = async(launch::async, genImg, glm::vec3(0.1, 0, 0.2), curTile, 0, placeholder);
+
 
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
@@ -210,7 +228,7 @@ int main()
             float distCur = curTile->center.y;
             if (distCur > curTile->Up->center.y)
             {
-                std::cout << "Up\n";
+                cout << "Up\n";
 
                 curTile = curTile->Up;
                 camera.Position = getXZ(curTile->center);
@@ -223,7 +241,7 @@ int main()
             }
             else if (distCur > curTile->Down->center.y)
             {
-                std::cout << "Down\n";
+                cout << "Down\n";
 
                 curTile = curTile->Down;
                 camera.Position = getXZ(curTile->center);
@@ -236,7 +254,7 @@ int main()
             }
             else if (distCur > curTile->Right->center.y)
             {
-                std::cout << "Right\n";
+                cout << "Right\n";
 
                 curTile = curTile->Right;
                 camera.Position = getXZ(curTile->center);
@@ -249,7 +267,7 @@ int main()
             }
             else if (distCur > curTile->Left->center.y)
             {
-                std::cout << "Left\n";
+                cout << "Left\n";
 
                 curTile = curTile->Left;
                 camera.Position = getXZ(curTile->center);
@@ -264,6 +282,21 @@ int main()
 
         // Update tiles to be rendered based on current tile
         curTile->setStart(camera.Position);
+
+        // Start threading newly created tiles
+        while (!Tile::all.empty())
+        {
+            Tile* t = Tile::all.front();
+            if (numThreads < MAX_THREADS)
+            {
+                numThreads++;
+                thread(genImg, getPoincare(t->center), t, index, placeholder).detach();
+                index++;
+                allLocal.push_back(t); // Track existing tiles for memory management after rendering ends
+                Tile::all.pop();
+            }
+            else break;
+        }
 
         // Draw tiles (and images)
         for (Tile* t : Tile::tiles)
@@ -281,8 +314,10 @@ int main()
                 imageShader.use();
                 model = glm::translate(glm::mat4(1.0f), getPoincare(t->center));
                 float imgScale = glm::distance(getPoincare(t->TL), getPoincare(t->BR));
-                model = glm::scale(model, glm::vec3(imgScale * 0.2f));
+                model = glm::scale(model, glm::vec3(imgScale * 0.1f));
                 model = glm::translate(model, glm::vec3(0, 1, 0));
+                glm::vec3 target = glm::vec3(0) - getPoincare(t->center);
+                model = glm::rotate(model, atan2(-target.z, target.x) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                 imageShader.setMat4("model", model);
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, t->texture);
@@ -293,16 +328,44 @@ int main()
 
         glfwSwapBuffers(window); // swap the color buffer (color values for each pixel in GLFW's window)
         glfwPollEvents(); // check for events (i.e. kb or mouse), update the window state, call corresponding functions
+
+        while (!pending.empty())
+        {
+            // Load texture from generated image for the tile
+            Tile* t = pending.front();
+            string name = to_string(t->queueNum).append(".png");
+            t->texture = loadTexture(name.c_str());
+            pending.pop();
+            numThreads--;
+        }
     }
 
     // Clean resources allocated for GLFW
     glfwTerminate();
 
     // Free tile memory
-    for (Tile* t : Tile::all)
+    for (Tile* t : allLocal)
         delete t;
 
+    // Delete generated images
+    for (int i = 0; i < index; i++)
+    {
+        string name = to_string(i).append(".png");
+        remove(name.c_str());
+    }
+
     return 0;
+}
+
+void genImg(glm::vec3 coords, Tile* t, unsigned int ind, unsigned int placeholder)
+{
+    t->texture = placeholder;
+    string input = "py test.py " + to_string(coords.x) + " " + to_string(coords.z);
+    input.append(" " + to_string(ind));
+    system(input.c_str());
+
+    t->queueNum = ind;
+    pending.push(t);
 }
 
 // Callback function for when window is resized
@@ -395,7 +458,7 @@ unsigned int loadTexture(char const* path)
     }
     else
     {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
+        cout << "Texture failed to load at path: " << path << endl;
     }
 
     stbi_image_free(data);
@@ -405,13 +468,13 @@ unsigned int loadTexture(char const* path)
 // Print a vec3
 void printVec(glm::vec3 v)
 {
-    std::cout << "(" << v.x << ", " << v.y << ", " << v.z << ")" << std::endl;
+    cout << "(" << v.x << ", " << v.y << ", " << v.z << ")" << endl;
 }
 
 // Print a float
 void printNum(float num)
 {
-    std::cout << num << std::endl;
+    cout << num << endl;
 }
 
 // Set consecutive elements in array to a vec3

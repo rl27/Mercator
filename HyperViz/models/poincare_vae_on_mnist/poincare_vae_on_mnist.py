@@ -36,5 +36,5 @@ class PoincareVAEonMNIST(HyperbolicGenerativeModel):
         return im
 
 
-im = PoincareVAEonMNIST().generate_image_from_coords([-0.3, -0.4])
-im.save('lol.png', "PNG")
+#im = PoincareVAEonMNIST().generate_image_from_coords([-0.3, -0.4])
+#im.save('lol.png', "PNG")

@@ -22,6 +22,7 @@ Tile::Tile(std::string n)
 
     texture = -1;
     angle = 0;
+    queueNum = -1;
 }
 
 void Tile::expand(bool create)
@@ -36,7 +37,7 @@ void Tile::expand(bool create)
             setUp(Up);
             Up->connectInTiles();
 
-            all.push_back(Up);
+            all.push(Up);
         }
         if (Right == NULL)
         {
@@ -46,7 +47,7 @@ void Tile::expand(bool create)
             setRight(Right);
             Right->connectInTiles();
 
-            all.push_back(Right);
+            all.push(Right);
         }
         if (Down == NULL)
         {
@@ -56,7 +57,7 @@ void Tile::expand(bool create)
             setDown(Down);
             Down->connectInTiles();
 
-            all.push_back(Down);
+            all.push(Down);
         }
         if (Left == NULL)
         {
@@ -66,7 +67,7 @@ void Tile::expand(bool create)
             setLeft(Left);
             Left->connectInTiles();
 
-            all.push_back(Left);
+            all.push(Left);
         }
     }
 
