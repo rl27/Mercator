@@ -9,6 +9,7 @@
 #include <string>
 #include <random>
 #include <vector>
+#include <queue>
 #include <algorithm>
 #include <iostream>
 
@@ -22,7 +23,7 @@ public:
     static std::vector<Tile*> tiles;
     static std::vector<Tile*> next;
     static std::vector<Tile*> created;
-    static std::vector<Tile*> all;
+    static std::queue<Tile*> all;
 
     glm::vec3 center;
     glm::vec3 TL;
@@ -37,6 +38,7 @@ public:
     glm::vec4 color;
     int texture;
     float angle;
+    int queueNum;
 
     Tile(std::string n);
 
