@@ -53,15 +53,16 @@ unsigned int numThreads = 0;
 vector<Tile*> Tile::tiles;
 vector<Tile*> Tile::next;
 vector<Tile*> Tile::created;
-queue<Tile*> Tile::all;
-
-vector<Tile*> allLocal;
+vector<Tile*> Tile::all;
+queue<Tile*> Tile::parents;
 
 // Call python script to generate image; run in parallel to OpenGL
 void genImg(glm::vec3 coords, Tile* t, unsigned int ind, unsigned int placeholder);
 
 // Manage image generations
 unsigned int index = 0;
+queue<Tile*> waiting;
+queue<glm::vec3> coords;
 queue<Tile*> pending;
 
 int main()
@@ -172,7 +173,7 @@ int main()
 
     // Initialize origin
     Tile* curTile = new Tile("O");
-    allLocal.push_back(curTile);
+    Tile::all.push_back(curTile);
 
     //curTile->setStart(glm::vec3(0, 0, 0));
     //curTile->Down->texture = loadTexture("gaben.png");
@@ -280,22 +281,49 @@ int main()
             }
         }
 
-        // Update tiles to be rendered based on current tile
+        // Update tiles to be created/rendered based on current tile
         curTile->setStart(camera.Position);
 
-        // Start threading newly created tiles
-        while (!Tile::all.empty())
+        // Generate images for megatiles
+        if (!Tile::parents.empty())
         {
-            Tile* t = Tile::all.front();
+            Tile* p = Tile::parents.front();
+            Tile* foo[12] = { p->Up, p->Right, p->Down, p->Left, p->Up->Right, p->Right->Up, p->Down->Right, p->Right->Down,
+                                                                 p->Up->Left,  p->Left->Up,  p->Down->Left,  p->Left->Down };
+            for (int i = 0; i < 12; i++)
+            {
+                if (foo[i]->parent == p)
+                {
+                    foo[i]->texture = placeholder;
+                    waiting.push(foo[i]);
+                }
+            }
+            Tile::parents.pop();
+        }
+
+        // Threads waiting to be threaded
+        while (!waiting.empty())
+        {
+            Tile* t = waiting.front();
             if (numThreads < MAX_THREADS)
             {
                 numThreads++;
                 thread(genImg, getPoincare(t->center), t, index, placeholder).detach();
                 index++;
-                allLocal.push_back(t); // Track existing tiles for memory management after rendering ends
-                Tile::all.pop();
+                waiting.pop();
             }
             else break;
+        }
+
+        // Link tiles with fully generated images
+        while (!pending.empty())
+        {
+            // Load texture from generated image for the tile
+            Tile* t = pending.front();
+            string name = to_string(t->queueNum).append(".png");
+            t->texture = loadTexture(name.c_str());
+            pending.pop();
+            numThreads--;
         }
 
         // Draw tiles (and images)
@@ -328,23 +356,13 @@ int main()
 
         glfwSwapBuffers(window); // swap the color buffer (color values for each pixel in GLFW's window)
         glfwPollEvents(); // check for events (i.e. kb or mouse), update the window state, call corresponding functions
-
-        while (!pending.empty())
-        {
-            // Load texture from generated image for the tile
-            Tile* t = pending.front();
-            string name = to_string(t->queueNum).append(".png");
-            t->texture = loadTexture(name.c_str());
-            pending.pop();
-            numThreads--;
-        }
     }
 
     // Clean resources allocated for GLFW
     glfwTerminate();
 
     // Free tile memory
-    for (Tile* t : allLocal)
+    for (Tile* t : Tile::all)
         delete t;
 
     // Delete generated images
@@ -359,7 +377,7 @@ int main()
 
 void genImg(glm::vec3 coords, Tile* t, unsigned int ind, unsigned int placeholder)
 {
-    t->texture = placeholder;
+    //t->texture = placeholder;
     string input = "py test.py " + to_string(coords.x) + " " + to_string(coords.z);
     input.append(" " + to_string(ind));
     system(input.c_str());

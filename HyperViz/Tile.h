@@ -23,22 +23,24 @@ public:
     static std::vector<Tile*> tiles;
     static std::vector<Tile*> next;
     static std::vector<Tile*> created;
-    static std::queue<Tile*> all;
+    static std::vector<Tile*> all;
+    static std::queue<Tile*> parents;
 
     glm::vec3 center;
     glm::vec3 TL;
     glm::vec3 TR;
     glm::vec3 BL;
     glm::vec3 BR;
-    Tile *Up;
-    Tile *Left;
-    Tile *Right;
-    Tile *Down;
+    Tile* Up;
+    Tile* Left;
+    Tile* Right;
+    Tile* Down;
     std::string name;
     glm::vec4 color;
     int texture;
     float angle;
     int queueNum;
+    Tile* parent;
 
     Tile(std::string n);
 

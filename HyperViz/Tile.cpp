@@ -20,6 +20,8 @@ Tile::Tile(std::string n)
     BL = glm::vec3(0);
     BR = glm::vec3(0);
 
+    parent = NULL;
+
     texture = -1;
     angle = 0;
     queueNum = -1;
@@ -37,7 +39,7 @@ void Tile::expand(bool create)
             setUp(Up);
             Up->connectInTiles();
 
-            all.push(Up);
+            all.push_back(Up);
         }
         if (Right == NULL)
         {
@@ -47,7 +49,7 @@ void Tile::expand(bool create)
             setRight(Right);
             Right->connectInTiles();
 
-            all.push(Right);
+            all.push_back(Right);
         }
         if (Down == NULL)
         {
@@ -57,7 +59,7 @@ void Tile::expand(bool create)
             setDown(Down);
             Down->connectInTiles();
 
-            all.push(Down);
+            all.push_back(Down);
         }
         if (Left == NULL)
         {
@@ -67,7 +69,7 @@ void Tile::expand(bool create)
             setLeft(Left);
             Left->connectInTiles();
 
-            all.push(Left);
+            all.push_back(Left);
         }
     }
 
@@ -175,6 +177,21 @@ void Tile::setStart(glm::vec3 relPos)
             t->connectInTiles();
         }
     }
+
+
+    if (!parent)
+    {
+        parents.push(this);
+        parent = this;
+        Tile* foo[12] = { Up, Right, Down, Left, Up->Right, Right->Up, Down->Right, Right->Down,
+                                                 Up->Left,  Left->Up,  Down->Left,  Left->Down };
+        for (int i = 0; i < 12; i++)
+        {
+            if (!foo[i]->parent)
+                foo[i]->parent = this;
+        }
+    }
+
 }
 
 void Tile::setRight(Tile* t)
