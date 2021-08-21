@@ -65,6 +65,8 @@ queue<Tile*> waiting;
 queue<glm::vec3> coords;
 queue<Tile*> pending;
 
+vector<thread> allThreads;
+
 int main()
 {
     /* --------------------------------------------------------------------------------- */
@@ -211,7 +213,7 @@ int main()
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.FOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.setMat4("projection", projection);
-        
+
         glm::mat4 transform = glm::mat4(1.0f); // Identity matrix
         //transform = glm::translate(transform, glm::vec3(0.0f, 2.0f, 0.0f));
         //transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -222,7 +224,7 @@ int main()
         imageShader.setMat4("model", model);
         imageShader.setMat4("view", view);
         imageShader.setMat4("projection", projection);
-        
+
         // Check for tile change
         if (currentFrame - changed > 0.3)
         {
@@ -308,7 +310,7 @@ int main()
             if (numThreads < MAX_THREADS)
             {
                 numThreads++;
-                thread(genImg, getPoincare(t->center), t, index, placeholder).detach();
+                allThreads.emplace_back(thread(genImg, getPoincare(t->center), t, index, placeholder));
                 index++;
                 waiting.pop();
             }
@@ -365,7 +367,9 @@ int main()
     for (Tile* t : Tile::all)
         delete t;
 
-    // Delete generated images
+    // Delete generated images after joining all threads
+    for (auto& th : allThreads)
+        th.join();
     for (int i = 0; i < index; i++)
     {
         string name = to_string(i).append(".png");
