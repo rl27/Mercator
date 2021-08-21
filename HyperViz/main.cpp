@@ -363,10 +363,6 @@ int main()
     // Clean resources allocated for GLFW
     glfwTerminate();
 
-    // Free tile memory
-    for (Tile* t : Tile::all)
-        delete t;
-
     // Delete generated images after joining all threads
     for (auto& th : allThreads)
         th.join();
@@ -375,6 +371,10 @@ int main()
         string name = to_string(i).append(".png");
         remove(name.c_str());
     }
+
+    // Free tile memory
+    for (Tile* t : Tile::all)
+        delete t;
 
     return 0;
 }
