@@ -60,7 +60,7 @@ queue<Tile*> Tile::parents;
 void genImg(glm::vec3 coords, Tile* t, unsigned int ind, unsigned int placeholder);
 
 // Manage image generations
-unsigned int index = 0;
+unsigned int index1 = 0;
 queue<Tile*> waiting;
 queue<glm::vec3> coords;
 queue<Tile*> pending;
@@ -310,8 +310,8 @@ int main()
             if (numThreads < MAX_THREADS)
             {
                 numThreads++;
-                allThreads.emplace_back(thread(genImg, getPoincare(t->center), t, index, placeholder));
-                index++;
+                allThreads.emplace_back(thread(genImg, getPoincare(t->center), t, index1, placeholder));
+                index1++;
                 waiting.pop();
             }
             else break;
@@ -366,7 +366,7 @@ int main()
     // Delete generated images after joining all threads
     for (auto& th : allThreads)
         th.join();
-    for (int i = 0; i < index; i++)
+    for (int i = 0; i < index1; i++)
     {
         string name = to_string(i).append(".png");
         remove(name.c_str());

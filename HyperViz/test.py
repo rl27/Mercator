@@ -1,4 +1,4 @@
-#!C:\Users\raymo\source\repos\HyperViz\venv\Scripts\python.exe
+#!..\venv\Scripts\python.exe
 
 import sys
 from models.poincare_vae_on_mnist.poincare_vae_on_mnist import PoincareVAEonMNIST
