@@ -67,11 +67,18 @@ queue<Tile*> pending;
 
 vector<thread> allThreads;
 
+void error_callback(int error, const char* msg) {
+    std::string s;
+    s = " [" + std::to_string(error) + "] " + msg + '\n';
+    std::cerr << s << std::endl;
+}
+
 int main()
 {
     /* --------------------------------------------------------------------------------- */
 
     /* GLFW initialization */
+    glfwSetErrorCallback(error_callback);
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
