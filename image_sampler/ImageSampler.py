@@ -14,7 +14,7 @@ models = {'poincare': PoincareVAEonMNIST}
 
 
 class ImageSampler:
-    def __init__(self):
+    def __init__(self, starting_tiles=None):
         self.path_to_world_data = join(path_configs['world_data_dir'], 'world_data.csv')
         self.sigma = hp['sigma']
         self.alpha = hp['alpha']
@@ -24,11 +24,18 @@ class ImageSampler:
         self.model_family = models[hp['model_family']]
         self.generative_model = self.model_family()
 
-        starting_record = [{'tile_index': 0,
-                            'tile_x': 0,
-                            'tile_y': 0,
-                            'latent_vector': self.get_random_coords(self.model_family.latent_dim).tolist()}]
-        data_df = pd.DataFrame(starting_record)
+        if starting_tiles is not None:
+            starting_records = [{'tile_index': 0,
+                                 'tile_x': tile[0],
+                                 'tile_y': tile[1],
+                                 'latent_vector': self.get_random_coords(self.model_family.latent_dim).tolist()}
+                                for tile in starting_tiles]
+        else:
+            starting_records = [{'tile_index': 0,
+                                 'tile_x': 0,
+                                 'tile_y': 0,
+                                 'latent_vector': self.get_random_coords(self.model_family.latent_dim).tolist()}]
+        data_df = pd.DataFrame(starting_records)
         data_df.to_csv(self.path_to_world_data)
 
     def generate_images_for_megatile(self, tile_coords: List[Tuple[float, float]]):
@@ -152,7 +159,6 @@ class ImageSampler:
                 cov[row, col] = self.k(x1, y1, x2, y2)
         return cov
 
-
     def get_random_coords(self, d):
         """
         gets points uniformly distrivuted in the d-dim unit ball
@@ -163,11 +169,9 @@ class ImageSampler:
         r = np.random.random() ** (1 / d)
         return r * u / norm
 
+
 if __name__ == "__main__":
     sampler = ImageSampler()
 
     first_set_of_tile_coords = [sampler.get_random_coords(2) for _ in range(20)]
     sampler.generate_images_for_megatile(first_set_of_tile_coords)
-
-    second_set_of_tile_coords = [sampler.get_random_coords(2) for _ in range(20)]
-    sampler.generate_images_for_megatile(second_set_of_tile_coords)
