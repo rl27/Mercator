@@ -24,6 +24,13 @@ class ImageSampler:
         self.model_family = models[hp['model_family']]
         self.generative_model = self.model_family()
 
+        starting_record = [{'tile_index': 0,
+                            'tile_x': 0,
+                            'tile_y': 0,
+                            'latent_vector': self.get_random_coords(self.model_family.latent_dim).tolist()}]
+        data_df = pd.DataFrame(starting_record)
+        data_df.to_csv(self.path_to_world_data)
+
     def generate_images_for_megatile(self, tile_coords: List[Tuple[float, float]]):
         ### 1. read in old data with schema (tile_index, tile_x, tile_y, latent_vector)
         if os.path.isfile(self.path_to_world_data):
@@ -78,7 +85,7 @@ class ImageSampler:
         :return: a list of n vectors of size d representing the sampled latent space vectors.
         """
         if len(data_df) == 0:
-            return [self.get_random_coords(self.model_family.latent_dim) for _ in range(len(list_of_test_coords))]
+            raise ValueError("World initialized incorrectly")
         else:
             if isinstance(data_df.iloc[0]['latent_vector'], str):
                 data_df['latent_vector'] = data_df['latent_vector'].apply(lambda x: eval(x))
@@ -156,11 +163,11 @@ class ImageSampler:
         r = np.random.random() ** (1 / d)
         return r * u / norm
 
+if __name__ == "__main__":
+    sampler = ImageSampler()
 
-sampler = ImageSampler()
+    first_set_of_tile_coords = [sampler.get_random_coords(2) for _ in range(20)]
+    sampler.generate_images_for_megatile(first_set_of_tile_coords)
 
-first_set_of_tile_coords = [sampler.get_random_coords(2) for _ in range(20)]
-sampler.generate_images_for_megatile(first_set_of_tile_coords)
-
-second_set_of_tile_coords = [sampler.get_random_coords(2) for _ in range(20)]
-sampler.generate_images_for_megatile(second_set_of_tile_coords)
+    second_set_of_tile_coords = [sampler.get_random_coords(2) for _ in range(20)]
+    sampler.generate_images_for_megatile(second_set_of_tile_coords)
