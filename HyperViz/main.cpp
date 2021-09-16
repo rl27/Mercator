@@ -45,8 +45,8 @@ float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 float changed = 0.0f;   // Time of last tile change
 
-// Limit the max number of threads (performance will absolutely tank otherwise)
-const unsigned int MAX_THREADS = 4;
+// Limit the max number of threads (performance will tank otherwise)
+const unsigned int MAX_THREADS = 1;
 unsigned int numThreads = 0;
 
 // Static vectors for tracking tiles
@@ -57,13 +57,13 @@ vector<Tile*> Tile::all;
 queue<Tile*> Tile::parents;
 
 // Call python script to generate image; run in parallel to OpenGL
-void genImg(glm::vec3 coords, Tile* t, unsigned int ind, unsigned int placeholder);
+void genImg(vector<Tile*> t, unsigned int ind);
 
 // Manage image generations
-unsigned int index1 = 0;
-queue<Tile*> waiting;
+unsigned int index1 = 1; // tile1.png, tile2.png, ...
+queue<vector<Tile*>> waiting;
 queue<glm::vec3> coords;
-queue<Tile*> pending;
+queue<vector<Tile*>> pending;
 
 vector<thread> allThreads;
 
@@ -185,7 +185,6 @@ int main()
     // #include <future>
     //auto fut = async(launch::async, genImg, glm::vec3(0.1, 0, 0.2), curTile, 0, placeholder);
 
-
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
     {
@@ -289,6 +288,8 @@ int main()
         // Generate images for megatiles
         if (!Tile::parents.empty())
         {
+            vector<Tile*> megatile;
+
             Tile* p = Tile::parents.front();
             Tile* foo[12] = { p->Up, p->Right, p->Down, p->Left, p->Up->Right, p->Right->Up, p->Down->Right, p->Right->Down,
                                                                  p->Up->Left,  p->Left->Up,  p->Down->Left,  p->Left->Down };
@@ -297,33 +298,42 @@ int main()
                 if (foo[i]->parent == p)
                 {
                     foo[i]->texture = placeholder;
-                    waiting.push(foo[i]);
+                    megatile.push_back(foo[i]);
                 }
             }
+            if (getPoincare(p->center) != glm::vec3(0))
+            {
+                p->texture = placeholder;
+                megatile.push_back(p);
+            }
+
             Tile::parents.pop();
+            waiting.push(megatile);
         }
 
-        // Threads waiting to be threaded
-        while (!waiting.empty())
+        // Megatiles waiting to be threaded
+        if (!waiting.empty())
         {
-            Tile* t = waiting.front();
             if (numThreads < MAX_THREADS)
             {
                 numThreads++;
-                allThreads.emplace_back(thread(genImg, getPoincare(t->center), t, index1, placeholder));
-                index1++;
+                vector<Tile*> megatile = waiting.front();
+                allThreads.emplace_back(thread(genImg, megatile, index1));
+                index1 += megatile.size();
                 waiting.pop();
             }
-            else break;
         }
 
         // Link tiles with fully generated images
         while (!pending.empty())
         {
             // Load texture from generated image for the tile
-            Tile* t = pending.front();
-            string name = to_string(t->queueNum).append(".png");
-            t->texture = loadTexture(name.c_str());
+            vector<Tile*> megatile = pending.front();
+            for (auto& t : megatile)
+            {
+                string name = "..\\world_data\\images\\tile" + to_string(t->queueNum) + ".png";
+                t->texture = loadTexture(name.c_str());
+            }
             pending.pop();
             numThreads--;
         }
@@ -366,11 +376,12 @@ int main()
     // Delete generated images after joining all threads
     for (auto& th : allThreads)
         th.join();
-    for (int i = 0; i < index1; i++)
+    /*for (int i = 0; i < index1; i++)
     {
         string name = to_string(i).append(".png");
         remove(name.c_str());
-    }
+    }*/
+    remove("image_sampler.pkl");
 
     // Free tile memory
     for (Tile* t : Tile::all)
@@ -379,15 +390,23 @@ int main()
     return 0;
 }
 
-void genImg(glm::vec3 coords, Tile* t, unsigned int ind, unsigned int placeholder)
+void genImg(vector<Tile*> mega, unsigned int ind)
 {
-    //t->texture = placeholder;
-    string input = "py test.py " + to_string(coords.x) + " " + to_string(coords.z);
-    input.append(" " + to_string(ind));
+    //t->texture = placeholder; // set placeholder earlier
+    string coords = "";
+    for (auto& tile : mega)
+    {
+        glm::vec3 c = getPoincare(tile->center);
+        coords += " " + to_string(c.x) + " " + to_string(c.z);
+        tile->queueNum = ind;
+        ind++;
+    }
+
+    string input = "py ..\\test.py" + coords;
+    //input.append(" " + to_string(ind));
     system(input.c_str());
 
-    t->queueNum = ind;
-    pending.push(t);
+    pending.push(mega);
 }
 
 // Callback function for when window is resized

@@ -37,7 +37,7 @@ def move(x):
     return x.to(_device)
 
 # hyperparameters
-hp = {'sigma': 1,
+hp = {'sigma': 0.4,
       'alpha': 1,
       'model_family': 'poincare'
       }
