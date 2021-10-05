@@ -31,6 +31,9 @@ void printNum(float num);
 void setArray(float arr[], glm::vec3 v, int ind);
 void setAllVertices(float arr[], Tile* T);
 
+// Get global coords of a tile from its string name
+glm::vec3 getCoordsFromString(string name);
+
 // Screen settings
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 800;
@@ -191,6 +194,13 @@ int main()
     // Test of future, async, launch::async
     // #include <future>
     //auto fut = async(launch::async, genImg, glm::vec3(0.1, 0, 0.2), curTile, 0, placeholder);
+    
+    //glm::vec3 test1 = line(glm::vec3(0, 1, 0), glm::vec3(0, 1, 1), 1.0612750619);
+    //printVec(test1);
+    //printVec(line(test1, glm::vec3(0, 1, 0), 1.0612750619));
+
+    //printVec(getCoordsFromString("OUR"));
+
 
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
@@ -388,7 +398,7 @@ int main()
         string name = to_string(i).append(".png");
         remove(name.c_str());
     }*/
-    remove("image_sampler.pkl");
+    std::remove("image_sampler.pkl");
 
     // Free tile memory
     for (Tile* t : Tile::all)
@@ -403,7 +413,8 @@ void genImg(vector<Tile*> mega, unsigned int ind)
     string coords = "";
     for (auto& tile : mega)
     {
-        glm::vec3 c = getPoincare(tile->center);
+        //glm::vec3 c = getPoincare(tile->center);
+        glm::vec3 c = getPoincare(getCoordsFromString(tile->name));
         coords += " " + to_string(c.x) + " " + to_string(c.z);
         tile->queueNum = ind;
         ind++;
@@ -414,6 +425,60 @@ void genImg(vector<Tile*> mega, unsigned int ind)
     system(input.c_str());
 
     pending.push(mega);
+}
+
+glm::vec3 getCoordsFromString(string name)
+{
+    int len = name.length();
+
+    Tile tt("");
+    glm::vec3 og(0, 1, 0);
+    tt.center = og;
+    float angle = 0;
+    tt.TR = rotate(translateXZ(og, 0.5306375, 0.5306375), angle);
+    tt.TL = rotate(translateXZ(og, -0.5306375, 0.5306375), angle);
+    tt.BR = rotate(translateXZ(og, 0.5306375, -0.5306375), angle);
+    tt.BL = rotate(translateXZ(og, -0.5306375, -0.5306375), angle);
+
+    Tile* next = new Tile("");
+    *next = tt;
+
+    for (int i = 1; i < len; i++)
+    {
+        next->Up = NULL;
+        next->Right = NULL;
+        next->Down = NULL;
+        next->Left = NULL;
+
+        char c = name[i];
+
+        if (c == 'U')
+        {
+            next->Down = &tt;
+            tt.setUp(next);
+            tt = *next;
+        }
+        else if (c == 'R')
+        {
+            next->Left = &tt;
+            tt.setRight(next);
+            tt = *next;
+        }
+        else if (c == 'D')
+        {
+            next->Up = &tt;
+            tt.setDown(next);
+            tt = *next;
+        }
+        else if (c == 'L')
+        {
+            next->Right = &tt;
+            tt.setLeft(next);
+            tt = *next;
+        }
+    }
+
+    return next->center;
 }
 
 // Callback function for when window is resized

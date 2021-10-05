@@ -16,15 +16,21 @@ class PoincareBigGAN(HyperbolicGenerativeModel):
     def generate_image_from_latent_vector(self, v) -> Image:
         coords = v
         
-        label = one_hot_from_names('bicycle', batch_size=1)
         noise = np.zeros((1,128))
         noise[:,0:64] = coords[0]
         noise[:,64:128] = coords[1]
+        print(coords)
+        label = one_hot_from_names('dog', batch_size=1)
 
         noise = torch.tensor(noise, dtype=torch.float)
-        label = torch.tensor(label, dtype=torch.float)
+        label = torch.tensor(label, dtype=torch.float)        
+        noise = noise.to('cuda')
+        label = label.to('cuda')
+        self.model.to('cuda')
+
         with torch.no_grad():
-            outputs = self.model(noise, label, truncation=0.5)
+            outputs = self.model(noise, label, truncation=0.8)
+        outputs = outputs.to('cpu')
 
         images = convert_to_images(outputs)
         return images[0]

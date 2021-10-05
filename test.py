@@ -8,11 +8,11 @@ from image_sampler.ImageSampler import ImageSampler
 
 filename = "image_sampler.pkl"
 if os.path.exists(filename):
-    print("exists")
+    #print("exists")
     with open(filename, 'rb') as sampler_file:
         sampler = pickle.load(sampler_file)
 else:
-    print("not exists")
+    #print("not exists")
     sampler = ImageSampler()
 
 #x, y = float(sys.argv[1]), float(sys.argv[2])
