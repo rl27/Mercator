@@ -62,6 +62,21 @@ class ImageSampler:
                                      'tile_x': tile_coords[i][0],
                                      'tile_y': tile_coords[i][1],
                                      'latent_vector': v})
+        '''
+        coords = []
+        for i, v in enumerate(latent_space_vectors):
+            tile_idx = i + len(data_df)
+            coords.append(v)
+            if not isinstance(v, list):
+                v = v.tolist()
+            new_tile_records.append({'tile_index': tile_idx,
+                                     'tile_x': tile_coords[i][0],
+                                     'tile_y': tile_coords[i][1],
+                                     'latent_vector': v})
+        imgs = self.generative_model.generate_multiple(coords)
+        for im in imgs:
+            im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
+        '''
 
         ### 4. write new data with schema (tile_index, tile_x, tile_y, latent_vector)
         new_df = pd.DataFrame(new_tile_records)

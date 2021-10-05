@@ -19,18 +19,44 @@ class PoincareBigGAN(HyperbolicGenerativeModel):
         noise = np.zeros((1,128))
         noise[:,0:64] = coords[0]
         noise[:,64:128] = coords[1]
-        print(coords)
-        label = one_hot_from_names('dog', batch_size=1)
+        noise += truncated_noise_sample(batch_size=1, dim_z=128, truncation=0.5)*1.5
+
+        label = one_hot_from_names('eagle', batch_size=1)
 
         noise = torch.tensor(noise, dtype=torch.float)
-        label = torch.tensor(label, dtype=torch.float)        
+        label = torch.tensor(label, dtype=torch.float)
         noise = noise.to('cuda')
         label = label.to('cuda')
         self.model.to('cuda')
 
         with torch.no_grad():
-            outputs = self.model(noise, label, truncation=0.8)
+            outputs = self.model(noise, label, truncation=1.0)
         outputs = outputs.to('cpu')
 
         images = convert_to_images(outputs)
         return images[0]
+
+
+    def generate_multiple(self, coords) -> Image:
+        num = len(coords)
+        
+        noise = np.zeros((num,128))
+        for i in range(num):
+            noise[i,0:64] = coords[i][0]
+            noise[i,64:128] = coords[i][1]
+        noise += truncated_noise_sample(batch_size=num, dim_z=128, truncation=0.3)*1.5
+
+        label = one_hot_from_names('dog', batch_size=num)
+
+        noise = torch.tensor(noise, dtype=torch.float)
+        label = torch.tensor(label, dtype=torch.float)
+        noise = noise.to('cuda')
+        label = label.to('cuda')
+        self.model.to('cuda')
+
+        with torch.no_grad():
+            outputs = self.model(noise, label, truncation=1.0)
+        outputs = outputs.to('cpu')
+
+        images = convert_to_images(outputs)
+        return images
