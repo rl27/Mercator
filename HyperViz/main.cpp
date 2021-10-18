@@ -420,7 +420,7 @@ void genImg(vector<Tile*> mega, unsigned int ind)
         ind++;
     }
 
-    string input = "py ..\\test.py" + coords;
+    string input = "py ..\\sendrequest.py" + coords;
     //input.append(" " + to_string(ind));
     system(input.c_str());
 
