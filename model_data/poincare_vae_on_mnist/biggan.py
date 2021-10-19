@@ -18,10 +18,13 @@ class PoincareBigGAN(HyperbolicGenerativeModel):
         
         #noise = np.zeros((1,128))
         #noise[0] = v
-        label = one_hot_from_names('eagle', batch_size=1)
+
+        #label = one_hot_from_names('eagle', batch_size=1)
+        label = np.zeros((1,1000))
 
         v = torch.tensor(v[:128], dtype=torch.float).to('cuda').unsqueeze(dim=0)
         label = torch.tensor(label, dtype=torch.float)
+        
         #noise = noise.to('cuda')
         label = label.to('cuda')
         self.model.to('cuda')
