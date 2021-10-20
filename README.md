@@ -26,3 +26,11 @@ export LIBGL_ALWAYS_INDIRECT=0
 To run [VcXsrv](https://sourceforge.net/projects/vcxsrv/), first run XLaunch, then choose Multiple windows, set Display number to 0, and uncheck Native opengl. **Be sure to also check "Disable access control"**.
 
 Then, open Windows Defender Firewall with Advanced Security -> Inbound Rules and ensure that VcXsrv is allowed access in both private and public networks. An easy way to do this is by deleting all rules for VcXsrv, then running it again through XLaunch.
+
+<hr>
+
+To run the Flask server (which is used to query an ImageSampler object), simply run the following:
+```
+python runserver.py 5555
+```
+Which will start a server on port 5555.
