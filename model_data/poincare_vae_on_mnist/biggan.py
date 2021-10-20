@@ -8,7 +8,7 @@ import numpy as np
 
 
 class PoincareBigGAN(HyperbolicGenerativeModel):
-    latent_dim = 128*2
+    latent_dim = 128
 
     def __init__(self):
         self.model = BigGAN.from_pretrained('biggan-deep-128')
@@ -22,7 +22,7 @@ class PoincareBigGAN(HyperbolicGenerativeModel):
         #label = one_hot_from_names('eagle', batch_size=1)
         label = np.zeros((1,1000))
 
-        v = torch.tensor(v[:128], dtype=torch.float).to('cuda').unsqueeze(dim=0)
+        v = torch.tensor(v, dtype=torch.float).to('cuda').unsqueeze(dim=0)
         label = torch.tensor(label, dtype=torch.float)
         
         #noise = noise.to('cuda')
