@@ -39,7 +39,7 @@ class ImageSampler:
         data_df = pd.DataFrame(starting_records)
         data_df.to_csv(self.path_to_world_data)
 
-    def generate_images_for_megatile(self, tile_coords: List[Tuple[float, float]]):
+    def generate_images_for_megatile(self, world_data: List[Tuple[int, float, float]], tile_coords: List[Tuple[float, float]]):
         ### 1. read in old data with schema (tile_index, tile_x, tile_y, latent_vector)
         if os.path.isfile(self.path_to_world_data):
             data_df = pd.read_csv(self.path_to_world_data)
@@ -47,15 +47,14 @@ class ImageSampler:
             data_df = pd.DataFrame(columns=['tile_index', 'tile_x', 'tile_y', 'latent_vector'])
 
         ### 2. sample new latent space vectors
-        latent_space_vectors = self.sample_latent_vector(data_df=data_df, list_of_test_coords=tile_coords)
+        latent_space_vectors = self.sample_latent_vector(data_df=data_df, world_data=world_data, list_of_test_coords=tile_coords)
 
         new_tile_records = []
         ### 3. write images to folder
         for i, v in enumerate(latent_space_vectors):
             tile_idx = i + len(data_df)
             im = self.generative_model.generate_image_from_latent_vector(v)
-            im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)),
-                    "PNG")
+            im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
             if not isinstance(v, list):
                 v = v.tolist()
             new_tile_records.append({'tile_index': tile_idx,
@@ -84,7 +83,7 @@ class ImageSampler:
         data_df.to_csv(self.path_to_world_data)
 
     # this implements the GP logic
-    def sample_latent_vector(self, data_df, list_of_test_coords):
+    def sample_latent_vector(self, data_df, world_data, list_of_test_coords):
         """
         :param data_df:
         :param list_of_test_coords:
@@ -113,7 +112,19 @@ class ImageSampler:
             if isinstance(data_df.iloc[0]['latent_vector'], str):
                 data_df['latent_vector'] = data_df['latent_vector'].apply(lambda x: eval(x))
 
-        list_of_train_coords = data_df.apply(lambda row: (row['tile_x'], row['tile_y']), axis=1).tolist()
+        #list_of_train_coords = data_df.apply(lambda row: (row['tile_x'], row['tile_y']), axis=1).tolist()
+
+        if len(world_data) == 0:
+            world_data.append([0, 0, 0])
+
+        list_of_train_coords = []
+        list_of_indices = []
+        for tile in world_data:
+            list_of_train_coords.append([tile[1], tile[2]])
+            list_of_indices.append(tile[0])
+        
+        culled_data = data_df.loc[data_df['tile_index'].isin(list_of_indices)]
+
         m = len(list_of_train_coords)
         n = len(list_of_test_coords)
         d = self.model_family.latent_dim
@@ -132,7 +143,7 @@ class ImageSampler:
         latent_slices = []
         for dim in range(d):
             # compute the posterior mean MU = K_*^T K f
-            f = data_df['latent_vector'].apply(lambda x: x[dim])
+            f = culled_data['latent_vector'].apply(lambda x: x[dim])
             posterior_mean = train_test_cov.T @ train_cov @ f
             # sample from the multivariate normal distribution N(MU, SIGMA).  Will be a vector of size n.
             test_sample_along_dim = np.random.multivariate_normal(mean=posterior_mean, cov=posterior_cov)
@@ -155,6 +166,13 @@ class ImageSampler:
         numerator = euclidean_distance + math.sqrt((norm1 ** 2) * (norm2 ** 2) - 2 * dot_product + 1)
         denominator = math.sqrt((1 - norm1 ** 2) * (1 - norm2 ** 2))
         return 2 * math.log(numerator / denominator)
+
+    # distance formula on the 3D hyperboloid, given only the non-vertical-axis coordinates
+    def hyperboloid_distance(self, x1, z1, x2, z2):
+        y1 = math.sqrt(1 + x1**2 + z1**2)
+        y2 = math.sqrt(1 + x2**2 + z2**2)
+        minkDot = y1 * y2 - x1 * x2 - z1 * z2
+        return math.acosh(minkDot)
 
     # our kernel function
     # this is the secret sauce binding the hyperbolic geometry to the ML

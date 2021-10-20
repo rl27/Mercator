@@ -16,7 +16,9 @@ print("app and sampler created")
 @app.route('/get_image', methods=['GET'])
 def get_image():
 
-    set_of_coords = json.loads(request.args.get('coords'))
-    sampler.generate_images_for_megatile(set_of_coords)
+    data = json.loads(request.args.get('data'))
+    world_data = data['world']
+    set_of_coords = data['coords']
+    sampler.generate_images_for_megatile(world_data, set_of_coords)
     
     return jsonify({'message': 'Complete'})

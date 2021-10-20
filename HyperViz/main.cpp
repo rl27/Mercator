@@ -60,7 +60,7 @@ vector<Tile*> Tile::all;
 queue<Tile*> Tile::parents;
 
 // Call python script to generate image; run in parallel to OpenGL
-void genImg(vector<Tile*> t, unsigned int ind);
+void genImg(vector<Tile*> t, vector<Tile*> worldTiles, unsigned int ind);
 
 // Manage image generations
 unsigned int index1 = 1; // tile1.png, tile2.png, ...
@@ -334,8 +334,17 @@ int main()
             if (numThreads < MAX_THREADS)
             {
                 numThreads++;
+
+                // Find nearby tiles that already have images / latent vectors
+                vector<Tile*> worldTiles;
+                for (Tile* t : Tile::tiles)
+                {
+                    if (t->queueNum != -1)
+                        worldTiles.push_back(t);
+                }
+
                 vector<Tile*> megatile = waiting.front();
-                allThreads.emplace_back(thread(genImg, megatile, index1));
+                allThreads.emplace_back(thread(genImg, megatile, worldTiles, index1));
                 index1 += megatile.size();
                 waiting.pop();
             }
@@ -398,7 +407,7 @@ int main()
         string name = to_string(i).append(".png");
         remove(name.c_str());
     }*/
-    std::remove("image_sampler.pkl");
+    //std::remove("image_sampler.pkl");
 
     // Free tile memory
     for (Tile* t : Tile::all)
@@ -407,20 +416,27 @@ int main()
     return 0;
 }
 
-void genImg(vector<Tile*> mega, unsigned int ind)
+void genImg(vector<Tile*> mega, vector<Tile*> worldTiles, unsigned int ind)
 {
     //t->texture = placeholder; // set placeholder earlier
-    string coords = "";
+    string coords = to_string(worldTiles.size());
+
+    for (auto& tile : worldTiles)
+    {
+        glm::vec3 c = getPoincare(tile->center);
+        coords += " " + to_string(tile->queueNum) + " " + to_string(c.x) + " " + to_string(c.z);
+    }
+
     for (auto& tile : mega)
     {
-        //glm::vec3 c = getPoincare(tile->center);
-        glm::vec3 c = getPoincare(getCoordsFromString(tile->name));
+        glm::vec3 c = getPoincare(tile->center);
+        //glm::vec3 c = getPoincare(getCoordsFromString(tile->name));
         coords += " " + to_string(c.x) + " " + to_string(c.z);
         tile->queueNum = ind;
         ind++;
     }
 
-    string input = "py ..\\sendrequest.py" + coords;
+    string input = "py ..\\sendrequest.py " + coords;
     //input.append(" " + to_string(ind));
     system(input.c_str());
 
