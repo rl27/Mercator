@@ -247,7 +247,7 @@ int main()
             float distCur = curTile->center.y;
             if (distCur > curTile->Up->center.y)
             {
-                cout << "Up\n";
+                //cout << "Up\n";
 
                 curTile = curTile->Up;
                 camera.Position = getXZ(curTile->center);
@@ -260,7 +260,7 @@ int main()
             }
             else if (distCur > curTile->Down->center.y)
             {
-                cout << "Down\n";
+                //cout << "Down\n";
 
                 curTile = curTile->Down;
                 camera.Position = getXZ(curTile->center);
@@ -273,7 +273,7 @@ int main()
             }
             else if (distCur > curTile->Right->center.y)
             {
-                cout << "Right\n";
+                //cout << "Right\n";
 
                 curTile = curTile->Right;
                 camera.Position = getXZ(curTile->center);
@@ -286,7 +286,7 @@ int main()
             }
             else if (distCur > curTile->Left->center.y)
             {
-                cout << "Left\n";
+                //cout << "Left\n";
 
                 curTile = curTile->Left;
                 camera.Position = getXZ(curTile->center);

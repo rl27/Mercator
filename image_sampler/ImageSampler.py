@@ -116,6 +116,8 @@ class ImageSampler:
 
         if len(world_data) == 0:
             world_data.append([0, 0, 0])
+            #for i in range(len(list_of_test_coords)):
+            #    list_of_test_coords[i] = self.get_random_coords(2)
 
         list_of_train_coords = []
         list_of_indices = []
