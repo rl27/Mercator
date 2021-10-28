@@ -5,13 +5,12 @@ from os.path import join
 import pandas as pd
 from PIL import Image
 from model_data.hyperbolic_generative_model import HyperbolicGenerativeModel
-from model_data.poincare_vae_on_mnist.poincare_vae_on_mnist import PoincareVAEonMNIST
-from model_data.poincare_vae_on_mnist.biggan import PoincareBigGAN
+from model_data.poincare_vae_on_mnist.GANzoo import PoincareGANzoo
 import numpy as np
 import os
 import random
 
-models = {'poincare': PoincareBigGAN}
+models = {'poincare': PoincareGANzoo}
 
 
 class ImageSampler:
