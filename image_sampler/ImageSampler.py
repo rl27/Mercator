@@ -9,6 +9,7 @@ from model_data.poincare_vae_on_mnist.GANzoo import PoincareGANzoo
 import numpy as np
 import os
 import random
+import copy
 
 models = {'poincare': PoincareGANzoo}
 
@@ -45,40 +46,29 @@ class ImageSampler:
         else:
             data_df = pd.DataFrame(columns=['tile_index', 'tile_x', 'tile_y', 'latent_vector'])
 
-        ### 2. sample new latent space vectors
-        latent_space_vectors = self.sample_latent_vector(data_df=data_df, world_data=world_data, list_of_test_coords=tile_coords)
+        
+        wd = world_data
 
-        new_tile_records = []
-        ### 3. write images to folder
-        for i, v in enumerate(latent_space_vectors):
-            tile_idx = i + len(data_df)
+        start_idx = len(data_df)
+        
+        for i in range(len(tile_coords)):
+
+            tile_idx = i + start_idx
+
+            v = self.sample_latent_vector(data_df=data_df, world_data=wd, list_of_test_coords=[tile_coords[i]])
+            wd.append((tile_idx, tile_coords[i][0], tile_coords[i][1]))
+            
             im = self.generative_model.generate_image_from_latent_vector(v)
             im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
             if not isinstance(v, list):
                 v = v.tolist()
-            new_tile_records.append({'tile_index': tile_idx,
-                                     'tile_x': tile_coords[i][0],
-                                     'tile_y': tile_coords[i][1],
-                                     'latent_vector': v})
-        '''
-        coords = []
-        for i, v in enumerate(latent_space_vectors):
-            tile_idx = i + len(data_df)
-            coords.append(v)
-            if not isinstance(v, list):
-                v = v.tolist()
-            new_tile_records.append({'tile_index': tile_idx,
-                                     'tile_x': tile_coords[i][0],
-                                     'tile_y': tile_coords[i][1],
-                                     'latent_vector': v})
-        imgs = self.generative_model.generate_multiple(coords)
-        for im in imgs:
-            im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
-        '''
+            new_tile_record = {'tile_index': tile_idx,
+                               'tile_x': tile_coords[i][0],
+                               'tile_y': tile_coords[i][1],
+                               'latent_vector': v}
+            new_df = pd.DataFrame(new_tile_record)
+            data_df = pd.concat([data_df, new_df])
 
-        ### 4. write new data with schema (tile_index, tile_x, tile_y, latent_vector)
-        new_df = pd.DataFrame(new_tile_records)
-        data_df = pd.concat([data_df, new_df])
         data_df.to_csv(self.path_to_world_data)
 
     # this implements the GP logic
@@ -113,7 +103,9 @@ class ImageSampler:
 
         #list_of_train_coords = data_df.apply(lambda row: (row['tile_x'], row['tile_y']), axis=1).tolist()
 
+
         if len(world_data) == 0:
+            world_data = copy.copy(world_data)
             world_data.append([0, 0, 0])
             '''
             ret = []
@@ -121,7 +113,6 @@ class ImageSampler:
                 ret.append(np.random.normal(0,0.01,self.model_family.latent_dim))
             return ret
             '''
-                
 
         list_of_train_coords = []
         list_of_indices = []
