@@ -115,8 +115,13 @@ class ImageSampler:
 
         if len(world_data) == 0:
             world_data.append([0, 0, 0])
-            #for i in range(len(list_of_test_coords)):
-            #    list_of_test_coords[i] = self.get_random_coords(2)
+            '''
+            ret = []
+            for i in range(len(list_of_test_coords)):
+                ret.append(np.random.normal(0,0.01,self.model_family.latent_dim))
+            return ret
+            '''
+                
 
         list_of_train_coords = []
         list_of_indices = []
@@ -139,6 +144,7 @@ class ImageSampler:
 
         # 4. compute the posterior covariance SIGMA = K_** - K_*^T K^(-1) K_*.  This is the same for each of the d GPs.
         posterior_cov = test_cov - train_test_cov.T @ np.linalg.inv(train_cov) @ train_test_cov
+        #print(repr(posterior_cov))
 
         # 5. for each latent space dim:
         latent_slices = []
