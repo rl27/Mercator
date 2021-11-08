@@ -1,6 +1,7 @@
 import os
 from os.path import join, dirname
 import torch
+import math
 
 ### PATH CONFIGS ###
 
@@ -37,7 +38,7 @@ def move(x):
     return x.to(_device)
 
 # hyperparameters
-hp = {'sigma': 1.0,
-      'alpha': 0.0001,
+hp = {'sigma': 3.0,
+      'alpha': 3.0,
       'model_family': 'poincare'
       }
