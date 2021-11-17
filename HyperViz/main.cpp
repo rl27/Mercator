@@ -310,6 +310,12 @@ int main()
             Tile* p = Tile::parents.front();
             Tile* foo[12] = { p->Up, p->Right, p->Down, p->Left, p->Up->Right, p->Right->Up, p->Down->Right, p->Right->Down,
                                                                  p->Up->Left,  p->Left->Up,  p->Down->Left,  p->Left->Down };
+            
+            if (getPoincare(p->center) != glm::vec3(0))
+            {
+                p->texture = placeholder;
+                megatile.push_back(p);
+            }
             for (int i = 0; i < 12; i++)
             {
                 if (foo[i]->parent == p)
@@ -317,11 +323,6 @@ int main()
                     foo[i]->texture = placeholder;
                     megatile.push_back(foo[i]);
                 }
-            }
-            if (getPoincare(p->center) != glm::vec3(0))
-            {
-                p->texture = placeholder;
-                megatile.push_back(p);
             }
 
             Tile::parents.pop();

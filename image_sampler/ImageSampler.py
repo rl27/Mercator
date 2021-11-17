@@ -174,7 +174,7 @@ class ImageSampler:
 
     # our kernel function
     # this is the secret sauce binding the hyperbolic geometry to the ML
-    # k(x,x') = sigma^2 e^(alpha * d(x, x')) is a PD kernel for any distance d with sigma^2, alpha > 0
+    # k(x,x') = sigma^2 e^(-alpha * d(x, x')) is a PD kernel for any distance d with sigma^2, alpha > 0
     # got this from Didong Li
     def k(self, x1, y1, x2, y2):
         return (self.sigma ** 2) * math.exp(-self.alpha * self.geodesic_distance(x1, y1, x2, y2))
