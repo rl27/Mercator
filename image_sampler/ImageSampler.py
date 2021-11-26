@@ -46,6 +46,29 @@ class ImageSampler:
         else:
             data_df = pd.DataFrame(columns=['tile_index', 'tile_x', 'tile_y', 'latent_vector'])
 
+
+        '''
+        ### 2. sample new latent space vectors
+        latent_space_vectors = self.sample_latent_vector(data_df=data_df, world_data=world_data, list_of_test_coords=tile_coords)
+
+        new_tile_records = []
+        ### 3. write images to folder
+        for i, v in enumerate(latent_space_vectors):
+            tile_idx = i + len(data_df)
+            im = self.generative_model.generate_image_from_latent_vector(v)
+            im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
+            if not isinstance(v, list):
+                v = v.tolist()
+            new_tile_records.append({'tile_index': tile_idx,
+                                     'tile_x': tile_coords[i][0],
+                                     'tile_y': tile_coords[i][1],
+                                     'latent_vector': v})
+
+        ### 4. write new data with schema (tile_index, tile_x, tile_y, latent_vector)
+        new_df = pd.DataFrame(new_tile_records)
+        data_df = pd.concat([data_df, new_df])
+        data_df.to_csv(self.path_to_world_data)
+        '''
         
         wd = world_data
 
@@ -70,6 +93,7 @@ class ImageSampler:
             data_df = pd.concat([data_df, new_df])
 
         data_df.to_csv(self.path_to_world_data)
+        
 
     # this implements the GP logic
     def sample_latent_vector(self, data_df, world_data, list_of_test_coords):

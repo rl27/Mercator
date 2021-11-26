@@ -308,8 +308,10 @@ int main()
             vector<Tile*> megatile;
 
             Tile* p = Tile::parents.front();
-            Tile* foo[12] = { p->Up, p->Right, p->Down, p->Left, p->Up->Right, p->Right->Up, p->Down->Right, p->Right->Down,
-                                                                 p->Up->Left,  p->Left->Up,  p->Down->Left,  p->Left->Down };
+            //Tile* foo[12] = { p->Up, p->Right, p->Down, p->Left, p->Up->Right, p->Right->Up, p->Down->Right, p->Right->Down,
+            //                                                     p->Up->Left,  p->Left->Up,  p->Down->Left,  p->Left->Down };
+            Tile* foo[12] = { p->Up, p->Right, p->Down, p->Left, p->Up->Right, p->Right->Down, p->Down->Left, p->Left->Up,
+                                                                 p->Right->Up, p->Down->Right, p->Left->Down, p->Up->Left };
             
             if (getPoincare(p->center) != glm::vec3(0))
             {
