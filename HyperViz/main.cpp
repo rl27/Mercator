@@ -39,7 +39,7 @@ unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 800;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.2f, 0.0f));
+Camera camera(glm::vec3(0.0f, 1.0f, 0.0f)); // Height is alterable in Camera.GetViewMatrix()
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -383,7 +383,7 @@ int main()
                 imageShader.use();
                 model = glm::translate(glm::mat4(1.0f), getPoincare(t->center));
                 float imgScale = glm::distance(getPoincare(t->TL), getPoincare(t->BR));
-                model = glm::scale(model, glm::vec3(imgScale * 0.1f));
+                model = glm::scale(model, glm::vec3(imgScale * 0.125f));
                 model = glm::translate(model, glm::vec3(0, 1, 0));
                 glm::vec3 target = glm::vec3(0) - getPoincare(t->center);
                 model = glm::rotate(model, atan2(-target.z, target.x) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));

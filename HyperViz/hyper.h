@@ -31,7 +31,7 @@ static glm::vec3 hypNormalize(glm::vec3 v)
 // Hyperbolic midpoint of a and b
 static glm::vec3 midpoint(glm::vec3 a, glm::vec3 b)
 {
-    return hypNormalize((a + b) / 2.0f);
+    return hypNormalize((a + b) / 2.0f);  // This "/ 2.0f" isn't necessary
 }
 
 // Minkowski distance between a and b

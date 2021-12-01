@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "hyper.h"
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
@@ -16,7 +17,7 @@ enum Camera_Movement {
 // Default camera values
 const float DEFAULT_YAW = -90.0f;
 const float DEFAULT_PITCH = 0.0f;
-const float DEFAULT_SPEED = 0.4f;
+const float DEFAULT_SPEED = 0.6f;
 const float DEFAULT_SENSITIVITY = 0.1f;
 const float DEFAULT_FOV = 60.0f;
 

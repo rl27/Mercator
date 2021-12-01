@@ -137,6 +137,20 @@ void Tile::setStart(glm::vec3 relPos)
 
     relPos = getXZ(b);*/
 
+    /* Attempt: take distance from Euclidean camera position to (0,0,0), then make line on hyperboloid and move that distance
+    float sum_sq = pow(relPos.x, 2.0f) + pow(relPos.z, 2.0f);
+    float dist = sqrt(sum_sq);
+    float y = sqrt(sum_sq + 1);
+    glm::vec3 dir(relPos.x, y, relPos.z);
+    glm::vec3 target = line(og, dir, dist);
+    if (dist < 1e-6)
+        target = glm::vec3(0, 1, 0);
+
+    glm::vec3 xz = getXZ(target);
+    float tx = xz.x;
+    float tz = xz.z;
+    */
+
     center = translateXZ(og, relPos.x, relPos.z);
     TR = translateXZ(og_TR, relPos.x, relPos.z);
     TL = translateXZ(og_TL, relPos.x, relPos.z);
