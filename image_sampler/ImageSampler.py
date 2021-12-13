@@ -13,7 +13,6 @@ import copy
 
 models = {'poincare': PoincareGANzoo}
 
-
 class ImageSampler:
     def __init__(self, starting_tiles=None):
         self.path_to_world_data = join(path_configs['world_data_dir'], 'world_data.csv')
@@ -152,6 +151,7 @@ class ImageSampler:
 
         # 1. compute the training covariance matrix K of size mxm.
         train_cov = self.compute_covariance_matrix(list_of_train_coords, list_of_train_coords)
+        train_cov += np.eye(train_cov.shape[0])*1e-8  # Prevent singular matrices
         # 2. compute the train-test covariance matrix K_* of size mxn.
         train_test_cov = self.compute_covariance_matrix(list_of_train_coords, list_of_test_coords)
         # 3. compute the test covariance matrix K_** of size nxn.
@@ -194,6 +194,8 @@ class ImageSampler:
         y1 = math.sqrt(1 + x1**2 + z1**2)
         y2 = math.sqrt(1 + x2**2 + z2**2)
         minkDot = y1 * y2 - x1 * x2 - z1 * z2
+        if minkDot < 1:
+            return 0
         return math.acosh(minkDot)
 
     # our kernel function
@@ -201,7 +203,7 @@ class ImageSampler:
     # k(x,x') = sigma^2 e^(-alpha * d(x, x')) is a PD kernel for any distance d with sigma^2, alpha > 0
     # got this from Didong Li
     def k(self, x1, y1, x2, y2):
-        return (self.sigma ** 2) * math.exp(-self.alpha * self.geodesic_distance(x1, y1, x2, y2))
+        return (self.sigma ** 2) * math.exp(-self.alpha * self.hyperboloid_distance(x1, y1, x2, y2))
 
     def compute_covariance_matrix(self, coords1, coords2):
         """

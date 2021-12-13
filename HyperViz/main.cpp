@@ -426,13 +426,13 @@ void genImg(vector<Tile*> mega, vector<Tile*> worldTiles, unsigned int ind)
 
     for (auto& tile : worldTiles)
     {
-        glm::vec3 c = getPoincare(tile->center);
+        glm::vec3 c = tile->center;
         coords += " " + to_string(tile->queueNum) + " " + to_string(c.x) + " " + to_string(c.z);
     }
 
     for (auto& tile : mega)
     {
-        glm::vec3 c = getPoincare(tile->center);
+        glm::vec3 c = tile->center;
         //glm::vec3 c = getPoincare(getCoordsFromString(tile->name));
         coords += " " + to_string(c.x) + " " + to_string(c.z);
         tile->queueNum = ind;
