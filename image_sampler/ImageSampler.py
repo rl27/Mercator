@@ -46,28 +46,28 @@ class ImageSampler:
             data_df = pd.DataFrame(columns=['tile_index', 'tile_x', 'tile_y', 'latent_vector'])
 
 
-        '''
-        ### 2. sample new latent space vectors
-        latent_space_vectors = self.sample_latent_vector(data_df=data_df, world_data=world_data, list_of_test_coords=tile_coords)
+        
+        # ### 2. sample new latent space vectors
+        # latent_space_vectors = self.sample_latent_vector(data_df=data_df, world_data=world_data, list_of_test_coords=tile_coords)
 
-        new_tile_records = []
-        ### 3. write images to folder
-        for i, v in enumerate(latent_space_vectors):
-            tile_idx = i + len(data_df)
-            im = self.generative_model.generate_image_from_latent_vector(v)
-            im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
-            if not isinstance(v, list):
-                v = v.tolist()
-            new_tile_records.append({'tile_index': tile_idx,
-                                     'tile_x': tile_coords[i][0],
-                                     'tile_y': tile_coords[i][1],
-                                     'latent_vector': v})
+        # new_tile_records = []
+        # ### 3. write images to folder
+        # for i, v in enumerate(latent_space_vectors):
+        #     tile_idx = i + len(data_df)
+        #     im = self.generative_model.generate_image_from_latent_vector(v)
+        #     im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
+        #     if not isinstance(v, list):
+        #         v = v.tolist()
+        #     new_tile_records.append({'tile_index': tile_idx,
+        #                              'tile_x': tile_coords[i][0],
+        #                              'tile_y': tile_coords[i][1],
+        #                              'latent_vector': v})
 
-        ### 4. write new data with schema (tile_index, tile_x, tile_y, latent_vector)
-        new_df = pd.DataFrame(new_tile_records)
-        data_df = pd.concat([data_df, new_df])
-        data_df.to_csv(self.path_to_world_data)
-        '''
+        # ### 4. write new data with schema (tile_index, tile_x, tile_y, latent_vector)
+        # new_df = pd.DataFrame(new_tile_records)
+        # data_df = pd.concat([data_df, new_df])
+        # data_df.to_csv(self.path_to_world_data)
+        
         
         wd = world_data
 
@@ -79,7 +79,7 @@ class ImageSampler:
 
             v = self.sample_latent_vector(data_df=data_df, world_data=wd, list_of_test_coords=[tile_coords[i]])
             wd.append((tile_idx, tile_coords[i][0], tile_coords[i][1]))
-            
+
             im = self.generative_model.generate_image_from_latent_vector(v)
             im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
             if not isinstance(v, list):
@@ -157,9 +157,8 @@ class ImageSampler:
         # 3. compute the test covariance matrix K_** of size nxn.
         test_cov = self.compute_covariance_matrix(list_of_test_coords, list_of_test_coords)
 
-        # 4. compute the posterior covariance SIGMA = K_** - K_*^T K^(-1) K_*.  This is the same for each of the d GPs.
+        # 4. compute the posterior covariance SIGMA = K_** - K_*^T K^(-1) K_*. This is the same for each of the d GPs.
         posterior_cov = test_cov - train_test_cov.T @ np.linalg.inv(train_cov) @ train_test_cov
-        #print(repr(posterior_cov))
 
         # 5. for each latent space dim:
         latent_slices = []
@@ -171,8 +170,13 @@ class ImageSampler:
             test_sample_along_dim = np.random.multivariate_normal(mean=posterior_mean, cov=posterior_cov)
             latent_slices.append(test_sample_along_dim)
 
-        # 6. Collect all d vectors of size n into an nxd matrix.  Transpose and re-slice into n vectors of size d.
-        latent_matrix = np.concatenate(latent_slices).reshape((n, d))
+        # 6. Collect all d vectors of size n into an nxd matrix. Transpose and re-slice into n vectors of size d.
+        #latent_matrix = np.concatenate(latent_slices).reshape((n, d))
+        latent_matrix = np.array(latent_slices).T
+
+        #latent_matrix = latent_matrix / np.sqrt(np.sum(latent_matrix**2, axis=1, keepdims=True))
+        #latent_matrix = np.random.randn(*latent_matrix.shape)
+        
         return latent_matrix.tolist()
 
     # closed form of distance formula on Poincare disk
@@ -203,6 +207,8 @@ class ImageSampler:
     # k(x,x') = sigma^2 e^(-alpha * d(x, x')) is a PD kernel for any distance d with sigma^2, alpha > 0
     # got this from Didong Li
     def k(self, x1, y1, x2, y2):
+        #print(x1,y1,x2,y2)
+        #print(self.hyperboloid_distance(x1, y1, x2, y2))
         return (self.sigma ** 2) * math.exp(-self.alpha * self.hyperboloid_distance(x1, y1, x2, y2))
 
     def compute_covariance_matrix(self, coords1, coords2):
@@ -219,13 +225,14 @@ class ImageSampler:
 
     def get_random_coords(self, d):
         """
-        gets points uniformly distrivuted in the d-dim unit ball
+        gets points uniformly distributed in the d-dim unit ball
         :return:
         """
-        u = np.random.normal(0, 1, d)
-        norm = np.sum(u ** 2) ** 0.5
-        r = np.random.random() ** (1 / d)
-        return r * u / norm
+        # u = np.random.normal(0, 1, d)
+        # norm = np.sum(u ** 2) ** 0.5
+        # r = np.random.random() ** (1 / d)
+        # return r * u / norm
+        return np.random.normal(0, 1, d)
 
 
 if __name__ == "__main__":

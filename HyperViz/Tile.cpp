@@ -199,6 +199,7 @@ void Tile::setStart(glm::vec3 relPos)
         parent = this;
         Tile* foo[12] = { Up, Right, Down, Left, Up->Right, Right->Up, Down->Right, Right->Down,
                                                  Up->Left,  Left->Up,  Down->Left,  Left->Down };
+        //Tile* foo[4] = { Up, Right, Down, Left };
         for (int i = 0; i < 12; i++)
         {
             if (!foo[i]->parent)

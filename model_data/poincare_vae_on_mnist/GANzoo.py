@@ -19,6 +19,11 @@ class PoincareGANzoo(HyperbolicGenerativeModel):
 
     def generate_image_from_latent_vector(self, v) -> Image:
         
+        # v = np.array(v)
+        # v = v / np.sqrt(np.sum(v**2))
+
+        #v = v / np.sqrt(np.sum(v**2, axis=1, keepdims=True))
+
         v = torch.tensor(v, dtype=torch.float).to('cuda').unsqueeze(dim=0)
 
         with torch.no_grad():

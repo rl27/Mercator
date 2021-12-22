@@ -312,6 +312,7 @@ int main()
             //                                                     p->Up->Left,  p->Left->Up,  p->Down->Left,  p->Left->Down };
             Tile* foo[12] = { p->Up, p->Right, p->Down, p->Left, p->Up->Right, p->Right->Down, p->Down->Left, p->Left->Up,
                                                                  p->Right->Up, p->Down->Right, p->Left->Down, p->Up->Left };
+            //Tile* foo[4] = { p->Up, p->Right, p->Down, p->Left };
             
             if (getPoincare(p->center) != glm::vec3(0))
             {
@@ -345,6 +346,16 @@ int main()
                     if (t->queueNum != -1)
                         worldTiles.push_back(t);
                 }
+                /*
+                if (curTile->Up->queueNum != -1)
+                    worldTiles.push_back(curTile->Up);
+                if (curTile->Right->queueNum != -1)
+                    worldTiles.push_back(curTile->Right);
+                if (curTile->Left->queueNum != -1)
+                    worldTiles.push_back(curTile->Left);
+                if (curTile->Down->queueNum != -1)
+                    worldTiles.push_back(curTile->Down);
+                */
 
                 vector<Tile*> megatile = waiting.front();
                 allThreads.emplace_back(thread(genImg, megatile, worldTiles, index1));
