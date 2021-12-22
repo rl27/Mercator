@@ -347,6 +347,7 @@ int main()
                         worldTiles.push_back(t);
                 }
                 /*
+                // This will make the sampler only use adjacent tiles; set sigma = alpha = 1.0
                 if (curTile->Up->queueNum != -1)
                     worldTiles.push_back(curTile->Up);
                 if (curTile->Right->queueNum != -1)

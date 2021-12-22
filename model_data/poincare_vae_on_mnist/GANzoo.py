@@ -19,10 +19,15 @@ class PoincareGANzoo(HyperbolicGenerativeModel):
 
     def generate_image_from_latent_vector(self, v) -> Image:
         
+        # Normalization; pytorch_GAN_zoo already does normalization
+        # https://github.com/facebookresearch/pytorch_GAN_zoo/blob/main/models/networks/custom_layers.py#L9
         # v = np.array(v)
         # v = v / np.sqrt(np.sum(v**2))
+        # v = v / np.sqrt(np.sum(v**2, axis=1, keepdims=True))
 
-        #v = v / np.sqrt(np.sum(v**2, axis=1, keepdims=True))
+        # To generate random inputs, see get_random_coords in ImageSampler. Alternatively:
+        # https://github.com/facebookresearch/pytorch_GAN_zoo/blob/main/models/base_GAN.py#L328
+        # v = torch.randn(1, latent_dim).to('cuda')
 
         v = torch.tensor(v, dtype=torch.float).to('cuda').unsqueeze(dim=0)
 
