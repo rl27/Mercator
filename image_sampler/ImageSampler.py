@@ -207,8 +207,6 @@ class ImageSampler:
     # k(x,x') = sigma^2 e^(-alpha * d(x, x')) is a PD kernel for any distance d with sigma^2, alpha > 0
     # got this from Didong Li
     def k(self, x1, y1, x2, y2):
-        #print(x1,y1,x2,y2)
-        #print(self.hyperboloid_distance(x1, y1, x2, y2))
         return (self.sigma ** 2) * math.exp(-self.alpha * self.hyperboloid_distance(x1, y1, x2, y2))
 
     def compute_covariance_matrix(self, coords1, coords2):
