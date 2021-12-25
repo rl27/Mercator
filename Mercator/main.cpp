@@ -201,6 +201,8 @@ int main()
 
     //printVec(getCoordsFromString("OUR"));
 
+    // Set random seed
+    srand(time(0));
 
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window))
