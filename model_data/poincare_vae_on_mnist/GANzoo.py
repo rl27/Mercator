@@ -30,6 +30,7 @@ class PoincareGANzoo(HyperbolicGenerativeModel):
         # v = torch.randn(1, latent_dim).to('cuda')
 
         v = torch.tensor(v, dtype=torch.float).to('cuda').unsqueeze(dim=0)
+        print("\n\n\nASDF\n\n\n")
 
         with torch.no_grad():
             outputs = self.model.test(v, toCPU=True)
