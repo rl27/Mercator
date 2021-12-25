@@ -5,7 +5,7 @@ from os.path import join
 import pandas as pd
 from PIL import Image
 from model_data.hyperbolic_generative_model import HyperbolicGenerativeModel
-from model_data.poincare_vae_on_mnist.GANzoo import PoincareGANzoo
+from model_data.GANzoo import PoincareGANzoo
 import numpy as np
 import os
 import random
