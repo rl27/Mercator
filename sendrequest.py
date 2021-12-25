@@ -1,7 +1,6 @@
-#!..\venv\Scripts\python.exe
 
 import sys
-import numpy as np
+# import numpy as np
 import requests
 import json
 
