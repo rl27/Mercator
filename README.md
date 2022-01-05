@@ -1,7 +1,7 @@
-# HyperViz
+# Mercator
 A tool for visualizing generative models in 3D hyperbolic space.
 
-In Visual Studio, add HyperViz/OpenGL/includes to the Include Directories under VC++ Directories in the project properties. Add HyperViz/OpenGL/lib to the Library Directories. Then, under Linker/Input/Additional Dependencies, add `glfw3.lib`.
+In Visual Studio, add Mercator/OpenGL/includes to the Include Directories under VC++ Directories in the project properties. Add Mercator/OpenGL/lib to the Library Directories. Then, under Linker/Input/Additional Dependencies, add `glfw3.lib`.
 
 On Linux, install the following packages:
 ```
