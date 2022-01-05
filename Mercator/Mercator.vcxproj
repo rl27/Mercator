@@ -78,8 +78,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\raymo\Documents\OpenGL\includes;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\raymo\Documents\OpenGL\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\raymo\source\repos\Mercator\Mercator\OpenGL\includes;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\raymo\source\repos\Mercator\Mercator\OpenGL\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -142,7 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\Documents\OpenGL\glad.c" />
+    <ClCompile Include="OpenGL\glad.c" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Shader.cpp" />
