@@ -13,7 +13,7 @@ class PoincareGANzoo(HyperbolicGenerativeModel):
         # PGAN models: ['celebAHQ-256', 'celebAHQ-512', 'DTD', 'celeba']
         use_gpu = True if torch.cuda.is_available() else False
         self.model = torch.hub.load('facebookresearch/pytorch_GAN_zoo:hub',
-                                    'PGAN', model_name='celebAHQ-256',
+                                    'PGAN', model_name='celebAHQ-512',
                                      pretrained=True, useGPU=use_gpu)
 
 

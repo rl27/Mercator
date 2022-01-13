@@ -148,6 +148,8 @@ class ImageSampler:
         m = len(list_of_train_coords)
         n = len(list_of_test_coords)
         d = self.model_family.latent_dim
+        print(list_of_train_coords)
+        print(list_of_test_coords)
 
         # 1. compute the training covariance matrix K of size mxm.
         train_cov = self.compute_covariance_matrix(list_of_train_coords, list_of_train_coords)
@@ -165,7 +167,7 @@ class ImageSampler:
         for dim in range(d):
             # compute the posterior mean MU = K_*^T K f
             f = culled_data['latent_vector'].apply(lambda x: x[dim])
-            posterior_mean = train_test_cov.T @ train_cov @ f
+            posterior_mean = train_test_cov.T @ np.linalg.inv(train_cov) @ f
             # sample from the multivariate normal distribution N(MU, SIGMA).  Will be a vector of size n.
             test_sample_along_dim = np.random.multivariate_normal(mean=posterior_mean, cov=posterior_cov)
             latent_slices.append(test_sample_along_dim)
@@ -207,7 +209,9 @@ class ImageSampler:
     # k(x,x') = sigma^2 e^(-alpha * d(x, x')) is a PD kernel for any distance d with sigma^2, alpha > 0
     # got this from Didong Li
     def k(self, x1, y1, x2, y2):
-        return (self.sigma ** 2) * math.exp(-self.alpha * self.hyperboloid_distance(x1, y1, x2, y2))
+        return (self.sigma ** 2) * math.exp(-1 * self.hyperboloid_distance(x1, y1, x2, y2) / self.alpha)
+        # return math.exp(-0.5 * (((x1-x2)/self.alpha)**2 + ((y1-y2)/self.alpha)**2))
+
 
     def compute_covariance_matrix(self, coords1, coords2):
         """
