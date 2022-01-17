@@ -10,6 +10,7 @@ import numpy as np
 import os
 import random
 import copy
+from scipy.spatial.distance import pdist, squareform
 
 models = {'poincare': PoincareGANzoo}
 
@@ -18,6 +19,7 @@ class ImageSampler:
         self.path_to_world_data = join(path_configs['world_data_dir'], 'world_data.csv')
         self.sigma = hp['sigma']
         self.alpha = hp['alpha']
+        self.lscale = hp['lscale']
         assert issubclass(models[hp['model_family']], HyperbolicGenerativeModel)
         assert self.sigma > 0
         assert self.alpha > 0
@@ -70,6 +72,39 @@ class ImageSampler:
         
         
         wd = world_data
+
+        ########## Initialization
+        if len(world_data) == 0:
+            #tile_coords.insert(0, [0,0])
+
+            # same as hyperboloid_distance, but takes in two vectors
+            def dist2(a, b):
+                x1, z1 = a
+                x2, z2 = b
+                y1 = math.sqrt(1 + x1**2 + z1**2)
+                y2 = math.sqrt(1 + x2**2 + z2**2)
+                minkDot = y1 * y2 - x1 * x2 - z1 * z2
+                if minkDot < 1:
+                    return 0
+                return math.acosh(minkDot)
+
+            dists = squareform(pdist(tile_coords, dist2))
+            K = np.exp(-0.5*dists / self.lscale**2) + 1e-6*np.eye(len(tile_coords))
+            cK = np.linalg.cholesky(K)
+            noise = cK @ np.random.randn(len(tile_coords), 512)
+            ims = self.generative_model.generate_multiple(noise)
+            for i, im in enumerate(ims):
+                tile_idx = i + 1 
+                im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
+                new_tile_record = {'tile_index': tile_idx, 'tile_x': tile_coords[i][0], 'tile_y': tile_coords[i][1], 'latent_vector': noise[i]}
+                new_df = pd.DataFrame(new_tile_record)
+                data_df = pd.concat([data_df, new_df])
+            data_df.to_csv(self.path_to_world_data)
+
+            return
+        ##########
+
+
 
         start_idx = len(data_df)
         

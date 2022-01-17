@@ -37,6 +37,16 @@ class PoincareGANzoo(HyperbolicGenerativeModel):
         images = self.convert_to_images(outputs)
         return images[0]
 
+    def generate_multiple(self, v) -> Image:
+
+        v = torch.tensor(v, dtype=torch.float).to('cuda')
+
+        with torch.no_grad():
+            generated_images = self.model.test(v)
+
+        images = self.convert_to_images(generated_images)
+        return images
+
 
     def convert_to_images(self, obj):
         """ Convert an output tensor from BigGAN in a list of images.

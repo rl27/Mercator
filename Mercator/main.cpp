@@ -316,11 +316,11 @@ int main()
                                                                  p->Right->Up, p->Down->Right, p->Left->Down, p->Up->Left };
             //Tile* foo[4] = { p->Up, p->Right, p->Down, p->Left };
             
-            if (getPoincare(p->center) != glm::vec3(0))
-            {
-                p->texture = placeholder;
-                megatile.push_back(p);
-            }
+            //if (getPoincare(p->center) != glm::vec3(0))
+            //{
+            p->texture = placeholder;
+            megatile.push_back(p);
+            //}
             for (int i = 0; i < 12; i++)
             {
                 if (foo[i]->parent == p)
