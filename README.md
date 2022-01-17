@@ -1,6 +1,9 @@
 # Mercator
 A tool for visualizing generative models in 3D hyperbolic space.
 
+<img src="example.png" alt="Example">
+Picture: Example of hyperbolic world populated by generated images of celebrity faces from a PGAN. Model source: https://github.com/facebookresearch/pytorch_GAN_zoo
+
 <hr>
 
 In Visual Studio, add Mercator/OpenGL/includes to the Include Directories under VC++ Directories in the project properties. Add Mercator/OpenGL/lib to the Library Directories. Then, under Linker/Input/Additional Dependencies, add `glfw3.lib` and `opengl32.lib`.

@@ -39,7 +39,7 @@ def move(x):
 
 # hyperparameters
 hp = {'sigma': 1.0,
-      'alpha': 4.0,
-      'lscale': 1.8,
+      'alpha': 3.2,
+      'lscale': 1.6,
       'model_family': 'poincare'
       }
