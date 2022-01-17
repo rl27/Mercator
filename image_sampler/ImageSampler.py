@@ -94,9 +94,9 @@ class ImageSampler:
             noise = cK @ np.random.randn(len(tile_coords), 512)
             ims = self.generative_model.generate_multiple(noise)
             for i, im in enumerate(ims):
-                tile_idx = i + 1 
-                im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
-                new_tile_record = {'tile_index': tile_idx, 'tile_x': tile_coords[i][0], 'tile_y': tile_coords[i][1], 'latent_vector': noise[i]}
+                tile_idx = i + 1
+                im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=i)), "PNG")
+                new_tile_record = {'tile_index': tile_idx, 'tile_x': tile_coords[i][0], 'tile_y': tile_coords[i][1], 'latent_vector': [noise[i].tolist()]}
                 new_df = pd.DataFrame(new_tile_record)
                 data_df = pd.concat([data_df, new_df])
             data_df.to_csv(self.path_to_world_data)
@@ -183,8 +183,6 @@ class ImageSampler:
         m = len(list_of_train_coords)
         n = len(list_of_test_coords)
         d = self.model_family.latent_dim
-        print(list_of_train_coords)
-        print(list_of_test_coords)
 
         # 1. compute the training covariance matrix K of size mxm.
         train_cov = self.compute_covariance_matrix(list_of_train_coords, list_of_train_coords)

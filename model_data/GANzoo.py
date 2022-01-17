@@ -42,7 +42,7 @@ class PoincareGANzoo(HyperbolicGenerativeModel):
         v = torch.tensor(v, dtype=torch.float).to('cuda')
 
         with torch.no_grad():
-            generated_images = self.model.test(v)
+            generated_images = self.model.test(v, toCPU=True)
 
         images = self.convert_to_images(generated_images)
         return images
