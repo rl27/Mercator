@@ -6,13 +6,14 @@ import pandas as pd
 from PIL import Image
 from model_data.hyperbolic_generative_model import HyperbolicGenerativeModel
 from model_data.GANzoo import PoincareGANzoo
+from model_data.JTVAE import PoincareJTVAE
 import numpy as np
 import os
 import random
 import copy
 from scipy.spatial.distance import pdist, squareform
 
-models = {'poincare': PoincareGANzoo}
+models = {'poincare': PoincareJTVAE}
 
 class ImageSampler:
     def __init__(self, starting_tiles=None):
@@ -91,11 +92,11 @@ class ImageSampler:
             dists = squareform(pdist(tile_coords, dist2))
             K = np.exp(-0.5*dists / self.lscale**2) + 1e-6*np.eye(len(tile_coords))
             cK = np.linalg.cholesky(K)
-            noise = cK @ np.random.randn(len(tile_coords), 512)
+            noise = cK @ np.random.randn(len(tile_coords), self.model_family.latent_dim)
             ims = self.generative_model.generate_multiple(noise)
             for i, im in enumerate(ims):
                 tile_idx = i + 1
-                im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=i)), "PNG")
+                im.save(join(path_configs['world_data_dir'], 'images', 'tile{tile_idx}.png'.format(tile_idx=tile_idx)), "PNG")
                 new_tile_record = {'tile_index': tile_idx, 'tile_x': tile_coords[i][0], 'tile_y': tile_coords[i][1], 'latent_vector': [noise[i].tolist()]}
                 new_df = pd.DataFrame(new_tile_record)
                 data_df = pd.concat([data_df, new_df])

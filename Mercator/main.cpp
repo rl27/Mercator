@@ -89,7 +89,7 @@ int main()
     glfwWindowHint(GLFW_SAMPLES, 4); // Multisampling
 
     // Create window object
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "HyperViz", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Mercator", NULL, NULL);
     if (window == NULL)
     {
         cout << "Failed to create GLFW window" << endl;

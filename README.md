@@ -2,7 +2,7 @@
 A tool for visualizing generative models in 3D hyperbolic space.
 
 <img src="example.png" alt="Example">
-Picture: Example of hyperbolic world populated by generated images of celebrity faces from a PGAN. Model source: https://github.com/facebookresearch/pytorch_GAN_zoo
+Picture: A hyperbolic world populated by generated images of celebrity faces from a PGAN. Model source: https://github.com/facebookresearch/pytorch_GAN_zoo
 
 <hr>
 
