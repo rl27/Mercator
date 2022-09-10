@@ -116,11 +116,12 @@ void Tile::setStart(glm::vec3 relPos)
 
     // RULDR on (0,1,0) gives (sc^2 - sc^3 - 2cs^3 + sc^4,   cs^2 - 3s^2*c^2 + c^5,   sc^2 + s^3 - sc^3)
 
+    double dist = 0.5306375;
     glm::vec3 og(0, 1, 0);
-    glm::vec3 og_TR = rotate(translateXZ(og, 0.5306375, 0.5306375), angle);
-    glm::vec3 og_TL = rotate(translateXZ(og, -0.5306375, 0.5306375), angle);
-    glm::vec3 og_BR = rotate(translateXZ(og, 0.5306375, -0.5306375), angle);
-    glm::vec3 og_BL = rotate(translateXZ(og, -0.5306375, -0.5306375), angle);
+    glm::vec3 og_TR = rotate(translateXZ(og, dist, dist), angle);
+    glm::vec3 og_TL = rotate(translateXZ(og, -dist, dist), angle);
+    glm::vec3 og_BR = rotate(translateXZ(og, dist, -dist), angle);
+    glm::vec3 og_BL = rotate(translateXZ(og, -dist, -dist), angle);
 
     /*center = translateXZ(og, 0, 0);
     TR = translateXZ(og_TR, 0, 0);

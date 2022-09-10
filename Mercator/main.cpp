@@ -187,7 +187,7 @@ int main()
     Tile* curTile = new Tile("O");
     Tile::all.push_back(curTile);
 
-    //curTile->setStart(glm::vec3(0, 0, 0));
+    curTile->setStart(glm::vec3(0, 0, 0));
     //curTile->Down->texture = loadTexture("gaben.png");
 
 
@@ -374,7 +374,7 @@ int main()
             vector<Tile*> megatile = pending.front();
             for (auto& t : megatile)
             {
-                string name = "..\\world_data\\images\\tile" + to_string(t->queueNum) + ".png";
+                string name = "../world_data/images/tile" + to_string(t->queueNum) + ".png";
                 t->texture = loadTexture(name.c_str());
             }
             pending.pop();
@@ -453,7 +453,7 @@ void genImg(vector<Tile*> mega, vector<Tile*> worldTiles, unsigned int ind)
         ind++;
     }
 
-    string input = "py ..\\sendrequest.py " + coords;
+    string input = "python ../sendrequest.py " + coords;
     //input.append(" " + to_string(ind));
     system(input.c_str());
 
