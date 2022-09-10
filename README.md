@@ -20,7 +20,7 @@ sudo apt install libxi-dev
 
 Then, to compile `main.cpp`, run the following:
 ```
-g++ -LOpenGL/lib -IOpenGL/includes main.cpp glad.c Shader.cpp Tile.cpp Camera.cpp stb_image.cpp -lglfw -lGL -lm -lX11 -lpthread -lXrandr -lXi -ldl
+g++ -LOpenGL/lib -IOpenGL/includes main.cpp OpenGL/glad.c Shader.cpp Tile.cpp Camera.cpp stb_image.cpp -lglfw -lGL -lm -lX11 -lpthread -lXrandr -lXi -ldl
 ```
 
 <hr>
