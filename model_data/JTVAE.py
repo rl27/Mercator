@@ -1,5 +1,17 @@
 #!/usr/bin/env python
 
+'''
+Example RDKit usage:
+from rdkit import Chem
+from rdkit.Chem.Draw import MolToImage
+mol = Chem.MolFromSmiles("C1CC2=C3C(=CC=C2)C(=CN3C1)[C@H]4[C@@H](C(=O)NC4=O)C5=CNC6=CC=CC=C65")
+im = MolToImage(mol)
+im.save("testing.png")
+
+#from rdkit.Chem.Draw import MolToFile
+#MolToFile(mol, "testing.png")
+'''
+
 import torch
 from model_data.hyperbolic_generative_model import HyperbolicGenerativeModel
 from PIL import Image
