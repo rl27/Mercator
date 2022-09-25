@@ -1,11 +1,8 @@
 #ifndef TILE_H
 #define TILE_H
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "hyper.h"
+#include "Vertex.h"
 #include <string>
 #include <random>
 #include <vector>
@@ -20,21 +17,12 @@
 class Tile
 {
 public:
-    static std::vector<Tile*> tiles;
+    static std::vector<Tile*> visible;
     static std::vector<Tile*> next;
-    static std::vector<Tile*> created;
     static std::vector<Tile*> all;
     static std::queue<Tile*> parents;
 
     glm::vec3 center;
-    glm::vec3 TL;
-    glm::vec3 TR;
-    glm::vec3 BL;
-    glm::vec3 BR;
-    Tile* Up;
-    Tile* Left;
-    Tile* Right;
-    Tile* Down;
     std::string name;
     glm::vec4 color;
     int texture;
@@ -42,7 +30,19 @@ public:
     int queueNum;
     Tile* parent;
 
-    Tile(std::string n);
+    std::vector<Vertex*> vertices;
+    std::vector<Edge*> edges;
+
+    int n; // Number of vertices per tile
+    int k; // Number of tiles per vertex
+
+    Tile(int n, int k);
+    Tile(Tile* ref, Edge* e, int n, int k);
+
+    void populateEdges(); // Once all vertices are set, fill edges vector with edges
+    int findEdge(Edge* e); // Find index of edge in edges vector
+    void setVertexLocs(Tile* ref, Edge* e); // Set vertex locations for this tile, given a reference tile and edge
+    std::vector<Tile*> getNeighbors(); // Get tile neighbors
 
     // Expand in all four directions, creating new tiles if necessary
     void expand(bool create);
@@ -51,23 +51,8 @@ public:
     // Calls expand() repeatedly, breadth-first
     void setStart(glm::vec3 relPos);
 
-    // Update center and corners of neighboring tiles
-    void setRight(Tile* R);
-    void setLeft(Tile* L);
-    void setUp(Tile* U);
-    void setDown(Tile* D);
-
-    // Get position of center of possible neighbors
-    glm::vec3 getRight();
-    glm::vec3 getLeft();
-    glm::vec3 getUp();
-    glm::vec3 getDown();
-
-    // Check if tile is in vector of all currently updated tiles
-    bool inTiles();
-
-    // Checks for unconnected neighboring tiles and connects them
-    void connectInTiles();
+    // Check if tile is in vector of all currently updated/visible tiles
+    bool isVisible();
 };
 
 #endif

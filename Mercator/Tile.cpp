@@ -1,106 +1,174 @@
 #include "Tile.h"
 
-Tile::Tile(std::string n)
-{
-    name = n;
-
+// For origin tile
+Tile::Tile(int n, int k) : name("O"), n(n), k(k) {
     float r = ((float)rand() / (RAND_MAX));
     float g = ((float)rand() / (RAND_MAX));
     float b = ((float)rand() / (RAND_MAX));
     color = glm::vec4(r, g, b, 1.0f);
 
-    Up = NULL;
-    Right = NULL;
-    Left = NULL;
-    Down = NULL;
+    center = glm::vec3(0, 1, 0);
 
-    center = glm::vec3(0);
-    TL = glm::vec3(0);
-    TR = glm::vec3(0);
-    BL = glm::vec3(0);
-    BR = glm::vec3(0);
+    Vertex* first_vert = new Vertex(k, reversePoincare(circleRadius(n, k), 0));
+    vertices.push_back(first_vert);
+    Edge* first_edge = first_vert->edges.at(0);
+    
+    Edge* edge = first_edge;
+    edge->addTile(this);
 
-    parent = NULL;
+    std::cout << "ORIGIN TILE" << std::endl;
+    for (int i = 1; i < n; i++) {
+        Vertex* next_vert = edge->vertex2;
+        glm::vec3 next_loc = rotate(vertices.at(i - 1)->getPos(), 2 * M_PI / n);
+        next_vert->clamp(next_loc);
+        vertices.push_back(next_vert);
+        
+        edge = next_vert->prev(edge);
+        edge->addTile(this);
+    }
+    
+    Edge* merge_edge = first_vert->next(first_edge);
+    edge->merge(merge_edge);
+
+    populateEdges();
 
     texture = -1;
     angle = 0;
     queueNum = -1;
 }
 
-void Tile::expand(bool create)
-{
-    if (create)
-    {
-        if (Up == NULL)
-        {
-            Up = new Tile(name + 'U');
-            Up->Down = this;
-            created.push_back(Up);
-            setUp(Up);
-            Up->connectInTiles();
 
-            all.push_back(Up);
-        }
-        if (Right == NULL)
-        {
-            Right = new Tile(name + 'R');
-            Right->Left = this;
-            created.push_back(Right);
-            setRight(Right);
-            Right->connectInTiles();
+Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
+    float r = ((float)rand() / (RAND_MAX));
+    float g = ((float)rand() / (RAND_MAX));
+    float b = ((float)rand() / (RAND_MAX));
+    color = glm::vec4(r, g, b, 1.0f);
 
-            all.push_back(Right);
-        }
-        if (Down == NULL)
-        {
-            Down = new Tile(name + 'D');
-            Down->Up = this;
-            created.push_back(Down);
-            setDown(Down);
-            Down->connectInTiles();
+    e->addTile(this);
 
-            all.push_back(Down);
-        }
-        if (Left == NULL)
-        {
-            Left = new Tile(name + 'L');
-            Left->Right = this;
-            created.push_back(Left);
-            setLeft(Left);
-            Left->connectInTiles();
+    center = extend(ref->center, midpoint(e->vertex1->getPos(), e->vertex2->getPos()));
 
-            all.push_back(Left);
-        }
+    std::vector<Vertex*> verts = e->verts(center);
+    vertices.push_back(verts.at(0));
+
+    Vertex* back_vert = verts.at(0);
+    Vertex* front_vert = verts.at(1);
+
+    vertices.insert(vertices.begin(), back_vert);
+
+    std::cout << "NON ORIGIN TILE" << std::endl;
+
+    Edge* back_edge = back_vert->next(e);
+    while (back_vert != front_vert && !back_edge->hasDangling()) {
+        back_vert = back_edge->verts(center).at(0);
+        vertices.insert(vertices.begin(), back_vert);
+        back_edge = back_vert->next(back_edge);
     }
 
-    if (Up && !Up->inTiles())
-    {
-        setUp(Up);
-        next.push_back(Up);
-        tiles.push_back(Up);
+    // Made a loop; all vertices accounted for
+    if (back_vert == front_vert)
+        vertices.erase(vertices.begin());
+    else { // Need to complete the vertices
+        Edge* edge = front_vert->prev(e);
+
+        Edge* ref_edge = e->verts(ref->center).at(1)->prev(e);
+        edge->addTile(this);
+
+        Vertex* vertex;
+        Vertex* reflecting_vertex;
+        glm::vec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
+
+        int size = vertices.size();
+        for (int i = size; i < n; i++) {
+            reflecting_vertex = ref_edge->verts(ref->center).at(1);
+
+            glm::vec3 next_loc = extend(reflecting_vertex->getPos(), midpt);
+            if (edge->hasDangling()) {
+                vertex = edge->vertex2;
+                vertex->clamp(next_loc);
+            } else {
+                vertex = edge->verts(center).at(1);
+                vertex->setPos(next_loc);
+            }
+
+            vertices.push_back(vertex);
+
+            edge = vertex->prev(edge);
+            ref_edge = reflecting_vertex->prev(ref_edge);
+            edge->addTile(this);
+        }
+
+        edge->merge(back_edge);
     }
-    if (Right && !Right->inTiles())
-    {
-        setRight(Right);
-        next.push_back(Right);
-        tiles.push_back(Right);
-    }
-    if (Down && !Down->inTiles())
-    {
-        setDown(Down);
-        next.push_back(Down);
-        tiles.push_back(Down);
-    }
-    if (Left && !Left->inTiles())
-    {
-        setLeft(Left);
-        next.push_back(Left);
-        tiles.push_back(Left);
+
+    populateEdges();
+
+
+    texture = -1;
+    angle = 0;
+    queueNum = -1;
+}
+
+void Tile::populateEdges() {
+    Vertex* v1 = vertices.at(0);
+    Vertex* v2 = vertices.at(1);
+    Edge* sweep = v1->seekVertex(v2);
+    edges.push_back(sweep);
+    Vertex* front = sweep->verts(center).at(1);
+
+    for (int i = 0; i < n - 1; i++) {
+        sweep = front->prev(sweep);
+        edges.push_back(sweep);
+        front = sweep->verts(center).at(1);
     }
 }
 
-void Tile::setStart(glm::vec3 relPos)
-{
+int Tile::findEdge(Edge* e) {
+    auto it = std::find(edges.begin(), edges.end(), e);
+    assert(it != edges.end());
+    return it - edges.begin();
+}
+
+void Tile::setVertexLocs(Tile* ref, Edge* e) {
+    Edge* edge = e->verts(center).at(1)->prev(e);
+    Edge* ref_edge = e->verts(ref->center).at(1)->prev(e);
+
+    Vertex* vertex;
+    Vertex* reflecting_vertex;
+    glm::vec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
+
+    for (int i = 0; i < n-2; i++) {
+        vertex = edge->verts(center).at(1);
+        reflecting_vertex = ref_edge->verts(ref->center).at(1);
+
+        glm::vec3 next_loc = extend(reflecting_vertex->getPos(), midpt);
+        vertex->setPos(next_loc);
+
+        edge = vertex->prev(edge);
+        ref_edge = reflecting_vertex->prev(ref_edge);
+    }
+}
+
+void Tile::expand(bool create) {
+    for (Edge* e : edges) {
+        Tile* other_tile = NULL;
+        if (e->tiles.size() < 2) {
+            if (create) {
+                other_tile = new Tile(this, e, n, k);
+                all.push_back(other_tile);
+            }
+        } else {
+            other_tile = (this == e->tiles.at(0)) ? e->tiles.at(1) : e->tiles.at(0);
+            other_tile->setVertexLocs(this, e);
+;       }
+        if (other_tile && !other_tile->isVisible()) {
+            next.push_back(other_tile);
+            visible.push_back(other_tile);
+        }
+    }
+}
+
+void Tile::setStart(glm::vec3 relPos) {
     // cosh(dist. between two centers) = golden ratio
     // dist = 2 * 0.5306375309525178260165094581067867429033927494693168481986051407
     // sinh(0.5306) * cosh(z) = sinh(z)
@@ -116,336 +184,69 @@ void Tile::setStart(glm::vec3 relPos)
 
     // RULDR on (0,1,0) gives (sc^2 - sc^3 - 2cs^3 + sc^4,   cs^2 - 3s^2*c^2 + c^5,   sc^2 + s^3 - sc^3)
 
-    double dist = 0.5306375;
-    glm::vec3 og(0, 1, 0);
-    glm::vec3 og_TR = rotate(translateXZ(og, dist, dist), angle);
-    glm::vec3 og_TL = rotate(translateXZ(og, -dist, dist), angle);
-    glm::vec3 og_BR = rotate(translateXZ(og, dist, -dist), angle);
-    glm::vec3 og_BL = rotate(translateXZ(og, -dist, -dist), angle);
+    // TODO: Figure out derivation of circleRadius (circ_rad)
+    
+    vertices.at(0)->setPos(rotate(reversePoincare(circleRadius(n, k), 0), angle));
+    for (int i = 1; i < n; i++)
+        vertices.at(i)->setPos(rotate(vertices.at(i - 1)->getPos(), 2 * M_PI / n));
 
-    /*center = translateXZ(og, 0, 0);
-    TR = translateXZ(og_TR, 0, 0);
-    TL = translateXZ(og_TL, 0, 0);
-    BR = translateXZ(og_BR, 0, 0);
-    BL = translateXZ(og_BL, 0, 0);
+    for (int i = 0; i < n; i++)
+        vertices.at(i)->setPos(translateXZ(vertices.at(i)->getPos(), relPos.x, relPos.z));
 
-    glm::vec3 top = midpoint(TL, TR);
-    glm::vec3 a = line(center, top, relPos.z * dist(center, top));
-
-    glm::vec3 right = midpoint(TR, BR);
-    glm::vec3 target = line(right, TR, relPos.z * dist(right, TR));
-    glm::vec3 b = line(a, target, relPos.x * dist(a, target));
-
-    relPos = getXZ(b);*/
-
-    /* Attempt: take distance from Euclidean camera position to (0,0,0), then make line on hyperboloid and move that distance
-    float sum_sq = pow(relPos.x, 2.0f) + pow(relPos.z, 2.0f);
-    float dist = sqrt(sum_sq);
-    float y = sqrt(sum_sq + 1);
-    glm::vec3 dir(relPos.x, y, relPos.z);
-    glm::vec3 target = line(og, dir, dist);
-    if (dist < 1e-6)
-        target = glm::vec3(0, 1, 0);
-
-    glm::vec3 xz = getXZ(target);
-    float tx = xz.x;
-    float tz = xz.z;
+    center = translateXZ(glm::vec3(0, 1, 0), relPos.x, relPos.z);
+    /*
+    TR = vertices.at(0)->getPos();
+    TL = vertices.at(1)->getPos();
+    BL = vertices.at(2)->getPos();
+    BR = vertices.at(3)->getPos();
     */
-
-    center = translateXZ(og, relPos.x, relPos.z);
-    TR = translateXZ(og_TR, relPos.x, relPos.z);
-    TL = translateXZ(og_TL, relPos.x, relPos.z);
-    BR = translateXZ(og_BR, relPos.x, relPos.z);
-    BL = translateXZ(og_BL, relPos.x, relPos.z);
 
     std::vector<Tile*> copy;
 
     next.clear();
     next.push_back(this);
 
-    tiles.clear();
-    tiles.push_back(this);
+    visible.clear();
+    visible.push_back(this);
 
-    created.clear();
-
-    int breadth = 5;
-    for (int i = 0; i <= breadth; i++)
-    {
+    int breadth = 1;
+    for (int i = 0; i <= breadth; i++) {
         copy.clear();
         for (Tile* t : next)
             copy.push_back(t);
         next.clear();
-        created.clear();
-        if (i <= breadth-2)
-        {
+        if (i <= breadth-2) {
             for (Tile* t : copy)
                 t->expand(true);
-        }
-        else
-        {
+        } else {
             for (Tile* t : copy)
                 t->expand(false);
         }
-
-        for (Tile* t : created)
-        {
-            t->connectInTiles();
-        }
     }
 
-
-    if (!parent)
-    {
+    if (!parent) {
         parents.push(this);
         parent = this;
-        Tile* foo[12] = { Up, Right, Down, Left, Up->Right, Right->Up, Down->Right, Right->Down,
-                                                 Up->Left,  Left->Up,  Down->Left,  Left->Down };
-        //Tile* foo[4] = { Up, Right, Down, Left };
-        for (int i = 0; i < 12; i++)
-        {
-            if (!foo[i]->parent)
-                foo[i]->parent = this;
+        for (Tile* t : getNeighbors()) {
+            if (!t->parent)
+                t->parent = this;
         }
     }
-
 }
 
-void Tile::setRight(Tile* t)
-{
-    t->center = getRight();
-
-    if (t->Left && t->Left == this)
-    {
-        t->TL = this->TR;
-        t->BL = this->BR;
-        t->TR = extend(t->BL, t->center);
-        t->BR = extend(t->TL, t->center);
+std::vector<Tile*> Tile::getNeighbors() {
+    std::vector<Tile*> neighbors;
+    for (Edge* e : edges) {
+        if (e->tiles.size() == 2) {
+            Tile* neighbor = (this == e->tiles.at(0)) ? e->tiles.at(1) : e->tiles.at(0);
+            neighbors.push_back(neighbor);
+        }
     }
-    if (t->Down && t->Down == this)
-    {
-        t->BL = this->TR;
-        t->BR = this->BR;
-        t->TR = extend(t->BL, t->center);
-        t->TL = extend(t->BR, t->center);
-    }
-    if (t->Up && t->Up == this)
-    {
-        t->TR = this->TR;
-        t->TL = this->BR;
-        t->BR = extend(t->TL, t->center);
-        t->BL = extend(t->TR, t->center);
-    }
-    if (t->Right && t->Right == this)
-    {
-        t->BR = this->TR;
-        t->TR = this->BR;
-        t->TL = extend(t->BR, t->center);
-        t->BL = extend(t->TR, t->center);
-    }
+    return neighbors;
 }
 
-void Tile::setLeft(Tile* t)
-{
-    t->center = getLeft();
-
-    if (t->Left && t->Left == this)
-    {
-        t->TL = this->BL;
-        t->BL = this->TL;
-        t->TR = extend(t->BL, t->center);
-        t->BR = extend(t->TL, t->center);
-    }
-    if (t->Down && t->Down == this)
-    {
-        t->BL = this->BL;
-        t->BR = this->TL;
-        t->TR = extend(t->BL, t->center);
-        t->TL = extend(t->BR, t->center);
-    }
-    if (t->Up && t->Up == this)
-    {
-        t->TR = this->BL;
-        t->TL = this->TL;
-        t->BR = extend(t->TL, t->center);
-        t->BL = extend(t->TR, t->center);
-    }
-    if (t->Right && t->Right == this)
-    {
-        t->BR = this->BL;
-        t->TR = this->TL;
-        t->TL = extend(t->BR, t->center);
-        t->BL = extend(t->TR, t->center);
-    }
-}
-
-void Tile::setUp(Tile* t)
-{
-    t->center = getUp();
-
-    if (t->Left && t->Left == this)
-    {
-        t->TL = this->TL;
-        t->BL = this->TR;
-        t->TR = extend(t->BL, t->center);
-        t->BR = extend(t->TL, t->center);
-    }
-    if (t->Down && t->Down == this)
-    {
-        t->BL = this->TL;
-        t->BR = this->TR;
-        t->TR = extend(t->BL, t->center);
-        t->TL = extend(t->BR, t->center);
-    }
-    if (t->Up && t->Up == this)
-    {
-        t->TR = this->TL;
-        t->TL = this->TR;
-        t->BR = extend(t->TL, t->center);
-        t->BL = extend(t->TR, t->center);
-    }
-    if (t->Right && t->Right == this)
-    {
-        t->BR = this->TL;
-        t->TR = this->TR;
-        t->TL = extend(t->BR, t->center);
-        t->BL = extend(t->TR, t->center);
-    }
-}
-
-void Tile::setDown(Tile* t)
-{
-    t->center = getDown();
-
-    if (t->Left && t->Left == this)
-    {
-        t->TL = this->BR;
-        t->BL = this->BL;
-        t->TR = extend(t->BL, t->center);
-        t->BR = extend(t->TL, t->center);
-    }
-    if (t->Down && t->Down == this)
-    {
-        t->BL = this->BR;
-        t->BR = this->BL;
-        t->TR = extend(t->BL, t->center);
-        t->TL = extend(t->BR, t->center);
-    }
-    if (t->Up && t->Up == this)
-    {
-        t->TR = this->BR;
-        t->TL = this->BL;
-        t->BR = extend(t->TL, t->center);
-        t->BL = extend(t->TR, t->center);
-    }
-    if (t->Right && t->Right == this)
-    {
-        t->BR = this->BR;
-        t->TR = this->BL;
-        t->TL = extend(t->BR, t->center);
-        t->BL = extend(t->TR, t->center);
-    }
-}
-
-glm::vec3 Tile::getRight()
-{
-    return extend(center, midpoint(TR, BR));
-}
-glm::vec3 Tile::getLeft()
-{
-    return extend(center, midpoint(TL, BL));
-}
-glm::vec3 Tile::getUp()
-{
-    return extend(center, midpoint(TL, TR));
-}
-glm::vec3 Tile::getDown()
-{
-    return extend(center, midpoint(BL, BR));
-}
-
-bool Tile::inTiles()
-{
-    if (std::find(tiles.begin(), tiles.end(), this) != tiles.end())
+bool Tile::isVisible() {
+    if (std::find(visible.begin(), visible.end(), this) != visible.end())
         return true;
     return false;
-}
-
-void Tile::connectInTiles()
-{
-    if (!Up)
-    {
-        for (Tile* t2 : tiles)
-        {
-            if (close(getUp(), t2->center))
-            {
-                if (!t2->Up && close(center, t2->getUp()))
-                    t2->Up = this;
-                if (!t2->Right && close(center, t2->getRight()))
-                    t2->Right = this;
-                if (!t2->Left && close(center, t2->getLeft()))
-                    t2->Left = this;
-                if (!t2->Down && close(center, t2->getDown()))
-                    t2->Down = this;
-                Up = t2;
-                break;
-            }
-        }
-    }
-    if (!Down)
-    {
-        for (Tile* t2 : tiles)
-        {
-            if (close(getDown(), t2->center))
-            {
-                if (!t2->Up && close(center, t2->getUp()))
-                    t2->Up = this;
-                if (!t2->Right && close(center, t2->getRight()))
-                    t2->Right = this;
-                if (!t2->Left && close(center, t2->getLeft()))
-                    t2->Left = this;
-                if (!t2->Down && close(center, t2->getDown()))
-                    t2->Down = this;
-                Down = t2;
-                break;
-            }
-        }
-    }
-    if (!Right)
-    {
-        for (Tile* t2 : tiles)
-        {
-            if (close(getRight(), t2->center))
-            {
-                if (!t2->Up && close(center, t2->getUp()))
-                    t2->Up = this;
-                if (!t2->Right && close(center, t2->getRight()))
-                    t2->Right = this;
-                if (!t2->Left && close(center, t2->getLeft()))
-                    t2->Left = this;
-                if (!t2->Down && close(center, t2->getDown()))
-                    t2->Down = this;
-                Right = t2;
-                break;
-            }
-        }
-    }
-    if (!Left)
-    {
-        for (Tile* t2 : tiles)
-        {
-            if (close(getLeft(), t2->center))
-            {
-                if (!t2->Up && close(center, t2->getUp()))
-                    t2->Up = this;
-                if (!t2->Right && close(center, t2->getRight()))
-                    t2->Right = this;
-                if (!t2->Left && close(center, t2->getLeft()))
-                    t2->Left = this;
-                if (!t2->Down && close(center, t2->getDown()))
-                    t2->Down = this;
-                Left = t2;
-                break;
-            }
-        }
-    }
 }

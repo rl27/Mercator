@@ -70,10 +70,26 @@ static glm::vec3 getPoincare(glm::vec3 v)
     return glm::vec3(v.x / y1, 0, v.z / y1);
 }
 
+// Project from (0,-1,0) to hyperboloid through a point in the unit circle.
+// Derivation: y^2 = 1 + x^2 + z^2, y = x/a - 1, y = z/c - 1, sub x and z in the first equation.
+static glm::vec3 reversePoincare(float a, float b)
+{
+    float d = pow(a, 2.0f) + pow(b, 2.0f);
+    assert(d < 1);
+    float y = (1 + d) / (1 - d);
+    return glm::vec3(a * (y + 1), y, b * (y + 1));
+}
+
 // Get Beltrami-Klein projection from hyperboloid to (0,0,0)
 static glm::vec3 getBeltrami(glm::vec3 v)
 {
     return glm::vec3(v.x / v.y, 0, v.z / v.y);
+}
+
+// Euclidean radius of circumscribed circle, given sides per polygon and polygons per vertex.
+static float circleRadius(int n, int k)
+{
+    return sqrt((tan(M_PI/2 - M_PI/k) - tan(M_PI/n)) / (tan(M_PI/2 - M_PI/k) +  tan(M_PI/n)));
 }
 
 /*******************
@@ -198,7 +214,7 @@ static bool close(glm::vec3 a, glm::vec3 b)
 }
 
 // Counter-clockwise rotation, preserving y
-static glm::vec3 rotate(glm::vec3 v, float angle)
+static glm::vec3 rotate(glm::vec3 v, double angle)
 {
     return glm::vec3(v.x * cos(angle) - v.z * sin(angle), v.y, v.x * sin(angle) + v.z * cos(angle));
 }

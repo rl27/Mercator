@@ -31,9 +31,6 @@ void printNum(float num);
 void setArray(float arr[], glm::vec3 v, int ind);
 void setAllVertices(float arr[], Tile* T);
 
-// Get global coords of a tile from its string name
-glm::vec3 getCoordsFromString(string name);
-
 // Screen settings
 unsigned int SCR_WIDTH = 1280;
 unsigned int SCR_HEIGHT = 800;
@@ -53,11 +50,14 @@ const unsigned int MAX_THREADS = 1;
 unsigned int numThreads = 0;
 
 // Static vectors for tracking tiles
-vector<Tile*> Tile::tiles;
+vector<Tile*> Tile::visible;
 vector<Tile*> Tile::next;
-vector<Tile*> Tile::created;
 vector<Tile*> Tile::all;
 queue<Tile*> Tile::parents;
+
+// Number of edges per tile and number of tiles per vertex
+const int n = 4;
+const int k = 5;
 
 // Call python script to generate image; run in parallel to OpenGL
 void genImg(vector<Tile*> t, vector<Tile*> worldTiles, unsigned int ind);
@@ -76,8 +76,7 @@ void error_callback(int error, const char* msg) {
     std::cerr << s << std::endl;
 }
 
-int main()
-{
+int main() {
     /* --------------------------------------------------------------------------------- */
 
     /* GLFW initialization */
@@ -90,8 +89,7 @@ int main()
 
     // Create window object
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Mercator", NULL, NULL);
-    if (window == NULL)
-    {
+    if (window == NULL) {
         cout << "Failed to create GLFW window" << endl;
         glfwTerminate();
         return -1;
@@ -109,8 +107,7 @@ int main()
     /* --------------------------------------------------------------------------------- */
 
     // Initialize GLAD before calling an OpenGL function
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         cout << "Failed to initialize GLAD" << endl;
         return -1;
     }
@@ -184,7 +181,7 @@ int main()
     unsigned int placeholder = loadTexture("placeholder.png");
 
     // Initialize origin
-    Tile* curTile = new Tile("O");
+    Tile* curTile = new Tile(n, k);
     Tile::all.push_back(curTile);
 
     curTile->setStart(glm::vec3(0, 0, 0));
@@ -199,14 +196,11 @@ int main()
     //printVec(test1);
     //printVec(line(test1, glm::vec3(0, 1, 0), 1.0612750619));
 
-    //printVec(getCoordsFromString("OUR"));
-
     // Set random seed
     srand(time(0));
 
     // Rendering loop - runs until GLFW is instructed to close
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         // Track time since last frame
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -244,60 +238,20 @@ int main()
         imageShader.setMat4("projection", projection);
 
         // Check for tile change
-        if (currentFrame - changed > 0.3)
-        {
+        if (currentFrame - changed > 0.3) {
             float distCur = curTile->center.y;
-            if (distCur > curTile->Up->center.y)
-            {
-                //cout << "Up\n";
+            for (Tile* neighbor : curTile->getNeighbors()) {
+                if (distCur > neighbor->center.y) {
+                    curTile = neighbor;
+                    camera.Position = getXZ(curTile->center);
 
-                curTile = curTile->Up;
-                camera.Position = getXZ(curTile->center);
+                    glm::vec3 reversed = reverseXZ(curTile->vertices.at(0)->getPos(), camera.Position.x, camera.Position.z);
+                    float ang = atan2(reversed.z, reversed.x);
+                    curTile->angle = ang;
 
-                glm::vec3 reversed = reverseXZ(curTile->TR, camera.Position.x, camera.Position.z);
-                float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
-                curTile->angle = ang;
-
-                changed = currentFrame;
-            }
-            else if (distCur > curTile->Down->center.y)
-            {
-                //cout << "Down\n";
-
-                curTile = curTile->Down;
-                camera.Position = getXZ(curTile->center);
-
-                glm::vec3 reversed = reverseXZ(curTile->TR, camera.Position.x, camera.Position.z);
-                float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
-                curTile->angle = ang;
-
-                changed = currentFrame;
-            }
-            else if (distCur > curTile->Right->center.y)
-            {
-                //cout << "Right\n";
-
-                curTile = curTile->Right;
-                camera.Position = getXZ(curTile->center);
-
-                glm::vec3 reversed = reverseXZ(curTile->TR, camera.Position.x, camera.Position.z);
-                float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
-                curTile->angle = ang;
-
-                changed = currentFrame;
-            }
-            else if (distCur > curTile->Left->center.y)
-            {
-                //cout << "Left\n";
-
-                curTile = curTile->Left;
-                camera.Position = getXZ(curTile->center);
-
-                glm::vec3 reversed = reverseXZ(curTile->TR, camera.Position.x, camera.Position.z);
-                float ang = atan2(reversed.z, reversed.x) - M_PI / 4;
-                curTile->angle = ang;
-
-                changed = currentFrame;
+                    changed = currentFrame;
+                    break;
+                }
             }
         }
 
@@ -305,28 +259,19 @@ int main()
         curTile->setStart(camera.Position);
 
         // Generate images for megatiles
-        if (!Tile::parents.empty())
-        {
+        if (!Tile::parents.empty()) {
             vector<Tile*> megatile;
 
             Tile* p = Tile::parents.front();
-            //Tile* foo[12] = { p->Up, p->Right, p->Down, p->Left, p->Up->Right, p->Right->Up, p->Down->Right, p->Right->Down,
-            //                                                     p->Up->Left,  p->Left->Up,  p->Down->Left,  p->Left->Down };
-            Tile* foo[12] = { p->Up, p->Right, p->Down, p->Left, p->Up->Right, p->Right->Down, p->Down->Left, p->Left->Up,
-                                                                 p->Right->Up, p->Down->Right, p->Left->Down, p->Up->Left };
-            //Tile* foo[4] = { p->Up, p->Right, p->Down, p->Left };
             
-            //if (getPoincare(p->center) != glm::vec3(0))
-            //{
+
             p->texture = placeholder;
             megatile.push_back(p);
-            //}
-            for (int i = 0; i < 12; i++)
-            {
-                if (foo[i]->parent == p)
-                {
-                    foo[i]->texture = placeholder;
-                    megatile.push_back(foo[i]);
+            
+            for (Tile* t : p->getNeighbors()) {
+                if (t->parent == p) {
+                    t->texture = placeholder;
+                    megatile.push_back(t);
                 }
             }
 
@@ -335,16 +280,13 @@ int main()
         }
 
         // Megatiles waiting to be threaded
-        if (!waiting.empty())
-        {
-            if (numThreads < MAX_THREADS)
-            {
+        if (!waiting.empty()) {
+            if (numThreads < MAX_THREADS) {
                 numThreads++;
 
                 // Find nearby tiles that already have images / latent vectors
                 vector<Tile*> worldTiles;
-                for (Tile* t : Tile::tiles)
-                {
+                for (Tile* t : Tile::visible) {
                     if (t->queueNum != -1)
                         worldTiles.push_back(t);
                 }
@@ -368,12 +310,10 @@ int main()
         }
 
         // Link tiles with fully generated images
-        while (!pending.empty())
-        {
+        while (!pending.empty()) {
             // Load texture from generated image for the tile
             vector<Tile*> megatile = pending.front();
-            for (auto& t : megatile)
-            {
+            for (auto& t : megatile) {
                 string name = "../world_data/images/tile" + to_string(t->queueNum) + ".png";
                 t->texture = loadTexture(name.c_str());
             }
@@ -382,8 +322,7 @@ int main()
         }
 
         // Draw tiles (and images)
-        for (Tile* t : Tile::tiles)
-        {
+        for (Tile* t : Tile::visible) {
             shader.use();
             setAllVertices(planeVertices, t);
             shader.setVec4("color", t->color);
@@ -392,7 +331,7 @@ int main()
             glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
             glDrawArrays(GL_TRIANGLES, 0, 6);
 
-            if (t->texture != -1)
+            /*if (t->texture != -1)
             {
                 imageShader.use();
                 model = glm::translate(glm::mat4(1.0f), getPoincare(t->center));
@@ -407,6 +346,7 @@ int main()
                 glBindVertexArray(VAO);
                 glDrawArrays(GL_TRIANGLES, 0, 6);
             }
+            */
         }
 
         glfwSwapBuffers(window); // swap the color buffer (color values for each pixel in GLFW's window)
@@ -433,21 +373,17 @@ int main()
     return 0;
 }
 
-void genImg(vector<Tile*> mega, vector<Tile*> worldTiles, unsigned int ind)
-{
+void genImg(vector<Tile*> mega, vector<Tile*> worldTiles, unsigned int ind) {
     //t->texture = placeholder; // set placeholder earlier
     string coords = to_string(worldTiles.size());
 
-    for (auto& tile : worldTiles)
-    {
+    for (auto& tile : worldTiles) {
         glm::vec3 c = tile->center;
         coords += " " + to_string(tile->queueNum) + " " + to_string(c.x) + " " + to_string(c.z);
     }
 
-    for (auto& tile : mega)
-    {
+    for (auto& tile : mega) {
         glm::vec3 c = tile->center;
-        //glm::vec3 c = getPoincare(getCoordsFromString(tile->name));
         coords += " " + to_string(c.x) + " " + to_string(c.z);
         tile->queueNum = ind;
         ind++;
@@ -460,78 +396,21 @@ void genImg(vector<Tile*> mega, vector<Tile*> worldTiles, unsigned int ind)
     pending.push(mega);
 }
 
-glm::vec3 getCoordsFromString(string name)
-{
-    int len = name.length();
-
-    Tile tt("");
-    glm::vec3 og(0, 1, 0);
-    tt.center = og;
-    float angle = 0;
-    tt.TR = rotate(translateXZ(og, 0.5306375, 0.5306375), angle);
-    tt.TL = rotate(translateXZ(og, -0.5306375, 0.5306375), angle);
-    tt.BR = rotate(translateXZ(og, 0.5306375, -0.5306375), angle);
-    tt.BL = rotate(translateXZ(og, -0.5306375, -0.5306375), angle);
-
-    Tile* next = new Tile("");
-    *next = tt;
-
-    for (int i = 1; i < len; i++)
-    {
-        next->Up = NULL;
-        next->Right = NULL;
-        next->Down = NULL;
-        next->Left = NULL;
-
-        char c = name[i];
-
-        if (c == 'U')
-        {
-            next->Down = &tt;
-            tt.setUp(next);
-            tt = *next;
-        }
-        else if (c == 'R')
-        {
-            next->Left = &tt;
-            tt.setRight(next);
-            tt = *next;
-        }
-        else if (c == 'D')
-        {
-            next->Up = &tt;
-            tt.setDown(next);
-            tt = *next;
-        }
-        else if (c == 'L')
-        {
-            next->Right = &tt;
-            tt.setLeft(next);
-            tt = *next;
-        }
-    }
-
-    return next->center;
-}
-
 // Callback function for when window is resized
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
     SCR_WIDTH = width;
     SCR_HEIGHT = height;
 }
 
 // Process keyboard input
-void processInput(GLFWwindow* window)
-{
+void processInput(GLFWwindow* window) {
     // Close window on esc press
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
     // WASD to move
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         camera.ProcessKeyboard(BACKWARD, deltaTime, true);
         //printVec(camera.Position);
     }
@@ -550,10 +429,8 @@ void processInput(GLFWwindow* window)
 }
 
 // Process mouse movement
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    if (firstMouse) // Ignore first mouse movement to prevent initial jumps
-    {
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (firstMouse){ // Ignore first mouse movement to prevent initial jumps
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;
@@ -567,8 +444,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     camera.ProcessMouseScroll(yoffset);
 }
 
@@ -580,8 +456,7 @@ unsigned int loadTexture(char const* path)
 
     int width, height, nrComponents;
     unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
-    if (data)
-    {
+    if (data) {
         GLenum format = GL_RED;
         if (nrComponents == 1)
             format = GL_RED;
@@ -603,42 +478,36 @@ unsigned int loadTexture(char const* path)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
     else
-    {
         cout << "Texture failed to load at path: " << path << endl;
-    }
 
     stbi_image_free(data);
     return textureID;
 }
 
 // Print a vec3
-void printVec(glm::vec3 v)
-{
+void printVec(glm::vec3 v) {
     cout << "(" << v.x << ", " << v.y << ", " << v.z << ")" << endl;
 }
 
 // Print a float
-void printNum(float num)
-{
+void printNum(float num) {
     cout << num << endl;
 }
 
 // Set consecutive elements in array to a vec3
-void setArray(float arr[], glm::vec3 v, int ind)
-{
+void setArray(float arr[], glm::vec3 v, int ind) {
     arr[ind] = v.x;
     arr[ind + 1] = v.y;
     arr[ind + 2] = v.z;
 }
 
-void setAllVertices(float arr[], Tile* tile)
-{
-    setArray(arr, getPoincare(tile->TR), 0);
-    setArray(arr, getPoincare(tile->TL), 8);
-    setArray(arr, getPoincare(tile->BL), 16);
-    setArray(arr, getPoincare(tile->TR), 24);
-    setArray(arr, getPoincare(tile->BL), 32);
-    setArray(arr, getPoincare(tile->BR), 40);
+void setAllVertices(float arr[], Tile* tile) {
+    setArray(arr, getPoincare(tile->vertices.at(0)->getPos()), 0);
+    setArray(arr, getPoincare(tile->vertices.at(1)->getPos()), 8);
+    setArray(arr, getPoincare(tile->vertices.at(2)->getPos()), 16);
+    setArray(arr, getPoincare(tile->vertices.at(0)->getPos()), 24);
+    setArray(arr, getPoincare(tile->vertices.at(2)->getPos()), 32);
+    setArray(arr, getPoincare(tile->vertices.at(3)->getPos()), 40);
     /*setArray(arr, getBeltrami(tile->TR), 0);
     setArray(arr, getBeltrami(tile->TL), 8);
     setArray(arr, getBeltrami(tile->BL), 16);
