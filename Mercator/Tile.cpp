@@ -49,7 +49,7 @@ Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
     center = extend(ref->center, midpoint(e->vertex1->getPos(), e->vertex2->getPos()));
 
     std::vector<Vertex*> verts = e->verts(center);
-    vertices.push_back(verts.at(0));
+    vertices.push_back(verts.at(1));
 
     Vertex* back_vert = verts.at(0);
     Vertex* front_vert = verts.at(1);
@@ -103,7 +103,6 @@ Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
 
     populateEdges();
 
-
     texture = -1;
     angle = 0;
     queueNum = -1;
@@ -130,17 +129,22 @@ int Tile::findEdge(Edge* e) {
 }
 
 void Tile::setVertexLocs(Tile* ref, Edge* e) {
-    Edge* edge = e->verts(center).at(1)->prev(e);
-    Edge* ref_edge = e->verts(ref->center).at(1)->prev(e);
+    center = extend(ref->center, midpoint(e->vertex1->getPos(), e->vertex2->getPos()));
 
-    Vertex* vertex;
+    Vertex* vertex = e->verts(center).at(1);
+    Edge* edge = vertex->prev(e);
+
+    Edge* ref_edge = e->verts(ref->center).at(1)->prev(e);
     Vertex* reflecting_vertex;
+
     glm::vec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
 
     for (int i = 0; i < n-2; i++) {
-        vertex = edge->verts(center).at(1);
+        // ccw vertex ordering breaks down when the vertex locations are inaccurate.
+        // Need to use prev_vertex and rely on comparing vertex1 and vertex1 instead of using verts().
+        vertex = (vertex == edge->vertex1) ? edge->vertex2 : edge->vertex1;
         reflecting_vertex = ref_edge->verts(ref->center).at(1);
-
+        
         glm::vec3 next_loc = extend(reflecting_vertex->getPos(), midpt);
         vertex->setPos(next_loc);
 
@@ -209,13 +213,15 @@ void Tile::setStart(glm::vec3 relPos) {
     visible.clear();
     visible.push_back(this);
 
+
     int breadth = 1;
     for (int i = 0; i <= breadth; i++) {
         copy.clear();
         for (Tile* t : next)
             copy.push_back(t);
         next.clear();
-        if (i <= breadth-2) {
+        
+        if (i <= breadth) {
             for (Tile* t : copy)
                 t->expand(true);
         } else {
@@ -224,6 +230,7 @@ void Tile::setStart(glm::vec3 relPos) {
         }
     }
 
+    /* // This is for marking tiles to be generated
     if (!parent) {
         parents.push(this);
         parent = this;
@@ -232,6 +239,7 @@ void Tile::setStart(glm::vec3 relPos) {
                 t->parent = this;
         }
     }
+    */
 }
 
 std::vector<Tile*> Tile::getNeighbors() {
