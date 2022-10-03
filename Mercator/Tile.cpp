@@ -37,7 +37,7 @@ Tile::Tile(int n, int k) : name("O"), n(n), k(k) {
     queueNum = -1;
 }
 
-
+// For non-origin tiles
 Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
     float r = ((float)rand() / (RAND_MAX));
     float g = ((float)rand() / (RAND_MAX));
@@ -60,6 +60,7 @@ Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
 
     Edge* back_edge = back_vert->next(e);
     while (back_vert != front_vert && !back_edge->hasDangling()) {
+        back_edge->addTile(this);
         back_vert = back_edge->verts(center).at(0);
         vertices.insert(vertices.begin(), back_vert);
         back_edge = back_vert->next(back_edge);
@@ -141,7 +142,7 @@ void Tile::setVertexLocs(Tile* ref, Edge* e) {
 
     for (int i = 0; i < n-2; i++) {
         // ccw vertex ordering breaks down when the vertex locations are inaccurate.
-        // Need to use prev_vertex and rely on comparing vertex1 and vertex1 instead of using verts().
+        // Need to use prev_vertex and rely on comparing vertex1 and vertex2 instead of using verts().
         vertex = (vertex == edge->vertex1) ? edge->vertex2 : edge->vertex1;
         reflecting_vertex = ref_edge->verts(ref->center).at(1);
         
@@ -162,12 +163,13 @@ void Tile::expand(bool create) {
                 all.push_back(other_tile);
             }
         } else {
+            assert(e->tiles.size() == 2);
             other_tile = (this == e->tiles.at(0)) ? e->tiles.at(1) : e->tiles.at(0);
-            other_tile->setVertexLocs(this, e);
-;       }
+        }
         if (other_tile && !other_tile->isVisible()) {
             next.push_back(other_tile);
             visible.push_back(other_tile);
+            other_tile->setVertexLocs(this, e);
         }
     }
 }
@@ -213,21 +215,16 @@ void Tile::setStart(glm::vec3 relPos) {
     visible.clear();
     visible.push_back(this);
 
-
-    int breadth = 1;
-    for (int i = 0; i <= breadth; i++) {
+    int depth = 2;
+    for (int i = 0; i <= depth; i++) {
         copy.clear();
         for (Tile* t : next)
             copy.push_back(t);
         next.clear();
-        
-        if (i <= breadth) {
-            for (Tile* t : copy)
-                t->expand(true);
-        } else {
-            for (Tile* t : copy)
-                t->expand(false);
-        }
+
+        bool create = (i <= depth-1);
+        for (Tile* t : copy)
+            t->expand(create);
     }
 
     /* // This is for marking tiles to be generated
