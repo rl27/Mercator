@@ -30,8 +30,8 @@ public:
     int queueNum;
     Tile* parent;
 
-    std::vector<Vertex*> vertices;
-    std::vector<Edge*> edges;
+    std::vector<Vertex*> vertices; // CCW order
+    std::vector<Edge*> edges; // CCW order
 
     int n; // Number of vertices per tile
     int k; // Number of tiles per vertex

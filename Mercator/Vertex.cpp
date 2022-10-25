@@ -76,6 +76,8 @@ std::vector<Vertex*> Edge::verts() {
 }
 
 void Edge::addTile(Tile* t) {
+	if (tiles.size() == 2)
+		std::cout << "2 TILES!" << std::endl;
 	if (std::find(tiles.begin(), tiles.end(), t) == tiles.end())
 		tiles.push_back(t);
 	else

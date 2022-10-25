@@ -61,7 +61,7 @@ Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
     Edge* back_edge = back_vert->next(e);
     while (back_vert != front_vert && !back_edge->hasDangling()) {
         back_edge->addTile(this);
-        back_vert = back_edge->verts(center).at(0);
+        back_vert = (back_vert == back_edge->vertex1) ? back_edge->vertex2 : back_edge->vertex1; //back_vert = back_edge->verts(center).at(0);
         vertices.insert(vertices.begin(), back_vert);
         back_edge = back_vert->next(back_edge);
     }
@@ -70,25 +70,26 @@ Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
     if (back_vert == front_vert)
         vertices.erase(vertices.begin());
     else { // Need to complete the vertices
-        Edge* edge = front_vert->prev(e);
-
-        Edge* ref_edge = e->verts(ref->center).at(1)->prev(e);
+        
+        Vertex* vertex = front_vert;
+        Edge* edge = vertex->prev(e);
         edge->addTile(this);
 
-        Vertex* vertex;
-        Vertex* reflecting_vertex;
+        Vertex* reflecting_vertex = e->verts(ref->center).at(1);
+        Edge* ref_edge = reflecting_vertex->prev(e);
+
         glm::vec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
 
         int size = vertices.size();
         for (int i = size; i < n; i++) {
-            reflecting_vertex = ref_edge->verts(ref->center).at(1);
+            reflecting_vertex = (reflecting_vertex == ref_edge->vertex1) ? ref_edge->vertex2 : ref_edge->vertex1; //reflecting_vertex = ref_edge->verts(ref->center).at(1);
 
             glm::vec3 next_loc = extend(reflecting_vertex->getPos(), midpt);
-            if (edge->hasDangling()) {
+            if (!edge->vertex2->initialized) {
                 vertex = edge->vertex2;
                 vertex->clamp(next_loc);
             } else {
-                vertex = edge->verts(center).at(1);
+                vertex = (vertex == edge->vertex1) ? edge->vertex2 : edge->vertex1; // vertex = edge->verts(center).at(1);
                 vertex->setPos(next_loc);
             }
 
@@ -110,7 +111,13 @@ Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
 }
 
 void Tile::populateEdges() {
-    Vertex* v1 = vertices.at(0);
+    for (int i = 0; i < n; i++) {
+        Vertex* v1 = vertices.at(i);
+        Vertex* v2 = vertices.at((i + 1) % n);
+        edges.push_back(v1->seekVertex(v2));
+    }
+
+    /*Vertex* v1 = vertices.at(0);
     Vertex* v2 = vertices.at(1);
     Edge* sweep = v1->seekVertex(v2);
     edges.push_back(sweep);
@@ -120,7 +127,7 @@ void Tile::populateEdges() {
         sweep = front->prev(sweep);
         edges.push_back(sweep);
         front = sweep->verts(center).at(1);
-    }
+    }*/
 }
 
 int Tile::findEdge(Edge* e) {
@@ -130,21 +137,20 @@ int Tile::findEdge(Edge* e) {
 }
 
 void Tile::setVertexLocs(Tile* ref, Edge* e) {
-    center = extend(ref->center, midpoint(e->vertex1->getPos(), e->vertex2->getPos()));
+    glm::vec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
+    center = extend(ref->center, midpt);
 
     Vertex* vertex = e->verts(center).at(1);
     Edge* edge = vertex->prev(e);
 
-    Edge* ref_edge = e->verts(ref->center).at(1)->prev(e);
-    Vertex* reflecting_vertex;
-
-    glm::vec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
+    Vertex* reflecting_vertex = e->verts(ref->center).at(1);
+    Edge* ref_edge = reflecting_vertex->prev(e);
 
     for (int i = 0; i < n-2; i++) {
         // ccw vertex ordering breaks down when the vertex locations are inaccurate.
-        // Need to use prev_vertex and rely on comparing vertex1 and vertex2 instead of using verts().
+        // Need to rely on comparing vertex1 and vertex2 instead of using verts().
         vertex = (vertex == edge->vertex1) ? edge->vertex2 : edge->vertex1;
-        reflecting_vertex = ref_edge->verts(ref->center).at(1);
+        reflecting_vertex = (reflecting_vertex == ref_edge->vertex1) ? ref_edge->vertex2 : ref_edge->vertex1; //reflecting_vertex = ref_edge->verts(ref->center).at(1);
         
         glm::vec3 next_loc = extend(reflecting_vertex->getPos(), midpt);
         vertex->setPos(next_loc);
@@ -165,6 +171,7 @@ void Tile::expand(bool create) {
         } else {
             assert(e->tiles.size() == 2);
             other_tile = (this == e->tiles.at(0)) ? e->tiles.at(1) : e->tiles.at(0);
+            // other_tile->setVertexLocs(this, e);
         }
         if (other_tile && !other_tile->isVisible()) {
             next.push_back(other_tile);
@@ -222,7 +229,7 @@ void Tile::setStart(glm::vec3 relPos) {
             copy.push_back(t);
         next.clear();
 
-        bool create = (i <= depth-1);
+        bool create = (i <= depth);
         for (Tile* t : copy)
             t->expand(create);
     }
@@ -236,6 +243,38 @@ void Tile::setStart(glm::vec3 relPos) {
                 t->parent = this;
         }
     }
+    */
+    
+    /*
+    for (Tile* t : all)
+    {
+        if (abs(t->color.x * 256 - 121.668) < 0.005)
+        {
+            for (Vertex* v : t->vertices)
+            {
+                std::cout << "v";
+                for (Edge* e : v->edges)
+                {
+                    if (e->hasDangling())
+                        std::cout << "1";
+                }
+            }
+        }
+        if (abs(t->color.x * 256 - 140.684) < 0.005)
+        {
+            std::cout << std::endl;
+            for (Vertex* v : t->vertices)
+            {
+                std::cout << "v";
+                for (Edge* e : v->edges)
+                {
+                    if (e->hasDangling())
+                        std::cout << "2";
+                }
+            }
+        }
+    }
+    std::cout << std::endl;
     */
 }
 

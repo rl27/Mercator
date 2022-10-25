@@ -57,7 +57,7 @@ queue<Tile*> Tile::parents;
 
 // Number of edges per tile and number of tiles per vertex
 const int n = 4;
-const int k = 5;
+const int k = 6;
 
 // Call python script to generate image; run in parallel to OpenGL
 void genImg(vector<Tile*> t, vector<Tile*> worldTiles, unsigned int ind);
