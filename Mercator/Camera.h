@@ -14,43 +14,43 @@ enum Camera_Movement {
 };
 
 // Default camera values
-const float DEFAULT_YAW = -90.0f;
-const float DEFAULT_PITCH = 0.0f;
-const float DEFAULT_SPEED = 0.6f;
-const float DEFAULT_SENSITIVITY = 0.1f;
-const float DEFAULT_FOV = 60.0f;
+const double DEFAULT_YAW = -90.0;
+const double DEFAULT_PITCH = 0.0;
+const double DEFAULT_SPEED = 0.6;
+const double DEFAULT_SENSITIVITY = 0.1;
+const double DEFAULT_FOV = 60.0;
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera
 {
 public:
     // Camera Attributes
-    glm::vec3 Position;
-    glm::vec3 Front;
-    glm::vec3 Up;
-    glm::vec3 Right;
-    glm::vec3 WorldUp;
+    glm::dvec3 Position;
+    glm::dvec3 Front;
+    glm::dvec3 Up;
+    glm::dvec3 Right;
+    glm::dvec3 WorldUp;
     // Euler Angles
-    float Yaw;
-    float Pitch;
+    double Yaw;
+    double Pitch;
     // Camera options
-    float MovementSpeed;
-    float MouseSensitivity;
-    float FOV;
+    double MovementSpeed;
+    double MouseSensitivity;
+    double FOV;
     bool sprint;
 
     // Constructor that takes vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = DEFAULT_YAW, float pitch = DEFAULT_PITCH);
+    Camera(glm::dvec3 position = glm::dvec3(0.0, 0.0, 0.0), glm::dvec3 up = glm::dvec3(0.0, 1.0, 0.0), double yaw = DEFAULT_YAW, double pitch = DEFAULT_PITCH);
     // Constructor that takes scalars
-    Camera(float posX = 0.0f, float posY = 0.0f, float posZ = 0.0f, float upX = 0.0f, float upY = 1.0f, float upZ = 0.0f, float yaw = DEFAULT_YAW, float pitch = DEFAULT_PITCH);
+    Camera(double posX = 0.0, double posY = 0.0, double posZ = 0.0, double upX = 0.0, double upY = 1.0, double upZ = 0.0, double yaw = DEFAULT_YAW, double pitch = DEFAULT_PITCH);
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
     // Updates camera position on input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboard(Camera_Movement direction, float deltaTime, bool FPS = false);
+    void ProcessKeyboard(Camera_Movement direction, double deltaTime, bool FPS = false);
     // Updates Euler Angles (Yaw/Pitch) on input received from mouse movement, then updates camera.
-    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
+    void ProcessMouseMovement(double xoffset, double yoffset, GLboolean constrainPitch = true);
     // Updates FOV on input received from a mouse scrolling. Only requires input on the vertical wheel-axis.
-    void ProcessMouseScroll(float yoffset);
+    void ProcessMouseScroll(double yoffset);
     // Move faster when shift key held down
     void StartSprint();
     // Move normally when shift key not held down

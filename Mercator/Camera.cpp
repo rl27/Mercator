@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front(glm::vec3(1.0f, 0.0f, 0.0f)), MovementSpeed(DEFAULT_SPEED), MouseSensitivity(DEFAULT_SENSITIVITY), FOV(DEFAULT_FOV)
+Camera::Camera(glm::dvec3 position, glm::dvec3 up, double yaw, double pitch) : Front(glm::dvec3(1.0, 0.0, 0.0)), MovementSpeed(DEFAULT_SPEED), MouseSensitivity(DEFAULT_SENSITIVITY), FOV(DEFAULT_FOV)
 {
     Position = position;
     WorldUp = up;
@@ -10,10 +10,10 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front
     updateCameraVectors();
 }
 
-Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(DEFAULT_SPEED), MouseSensitivity(DEFAULT_SENSITIVITY), FOV(DEFAULT_FOV)
+Camera::Camera(double posX, double posY, double posZ, double upX, double upY, double upZ, double yaw, double pitch) : Front(glm::dvec3(0.0, 0.0, -1.0)), MovementSpeed(DEFAULT_SPEED), MouseSensitivity(DEFAULT_SENSITIVITY), FOV(DEFAULT_FOV)
 {
-    Position = glm::vec3(posX, posY, posZ);
-    WorldUp = glm::vec3(upX, upY, upZ);
+    Position = glm::dvec3(posX, posY, posZ);
+    WorldUp = glm::dvec3(upX, upY, upZ);
     Yaw = yaw;
     Pitch = pitch;
     sprint = false;
@@ -23,16 +23,16 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
 glm::mat4 Camera::GetViewMatrix()
 {
     //return glm::lookAt(Position, Position + Front, Up);
-    return glm::lookAt(glm::vec3(0.0f, 0.4f, 0.0f), glm::vec3(0.0f, 0.4f, 0.0f) + Front, Up);
+    return glm::lookAt(glm::dvec3(0.0, 0.4, 0.0), glm::dvec3(0.0, 0.4, 0.0) + Front, Up);
 }
 
-void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime, bool FPS)
+void Camera::ProcessKeyboard(Camera_Movement direction, double deltaTime, bool FPS)
 {
-    float velocity = MovementSpeed * deltaTime;
+    double velocity = MovementSpeed * deltaTime;
 
-    glm::vec3 myFront = Front;
+    glm::dvec3 myFront = Front;
 
-    float prevY = Position.y;
+    double prevY = Position.y;
 
     // Full speed front movement, regardless of how high you look
     if (FPS)
@@ -56,7 +56,7 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime, bool FP
         Position.y = prevY;
 }
 
-void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)
+void Camera::ProcessMouseMovement(double xoffset, double yoffset, GLboolean constrainPitch)
 {
     xoffset *= MouseSensitivity;
     yoffset *= MouseSensitivity;
@@ -77,9 +77,9 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
     updateCameraVectors();
 }
 
-void Camera::ProcessMouseScroll(float yoffset)
+void Camera::ProcessMouseScroll(double yoffset)
 {
-    FOV -= (float)yoffset;
+    FOV -= (double)yoffset;
     if (FOV < 1.0f)
         FOV = 1.0f;
     if (FOV > 60.0f)
@@ -89,7 +89,7 @@ void Camera::ProcessMouseScroll(float yoffset)
 void Camera::updateCameraVectors()
 {
     // calculate the new Front vector
-    glm::vec3 front;
+    glm::dvec3 front;
     front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
     front.y = sin(glm::radians(Pitch));
     front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));

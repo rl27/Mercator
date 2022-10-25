@@ -24,12 +24,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
 
-// Printing glm::vec3 and floats
-void printVec(glm::vec3 v);
-void printNum(float num);
+// Print glm::dvec3
+void printVec(glm::dvec3 v);
 
-void setArray(float arr[], glm::vec3 v, int ind);
-void setAllVertices(float arr[], Tile* T);
+void setArray(double arr[], glm::dvec3 v, int ind);
+void setAllVertices(double arr[], Tile* T);
 
 // Screen settings
 unsigned int SCR_WIDTH = 1280;
@@ -37,13 +36,13 @@ unsigned int SCR_HEIGHT = 800;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 1.0f, 0.0f)); // Height is alterable in Camera.GetViewMatrix()
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+double lastX = SCR_WIDTH / 2.0f;
+double lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-float deltaTime = 0.0f;	// Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
-float changed = 0.0f;   // Time of last tile change
+double deltaTime = 0.0f; // Time between current frame and last frame
+double lastFrame = 0.0f; // Time of last frame
+double changed = 0.0f;   // Time of last tile change
 
 // Limit the max number of threads (performance will tank otherwise)
 const unsigned int MAX_THREADS = 1;
@@ -63,7 +62,7 @@ const int k = 6;
 void genImg(vector<Tile*> t, vector<Tile*> worldTiles, unsigned int ind);
 
 // Manage image generations
-unsigned int index1 = 1; // tile1.png, tile2.png, ...
+size_t index1 = 1; // tile1.png, tile2.png, ...
 queue<vector<Tile*>> waiting;
 queue<glm::vec3> coords;
 queue<vector<Tile*>> pending;
@@ -123,7 +122,7 @@ int main() {
     Shader shader("shader.vs", "shader.fs");
     Shader imageShader("image.vs", "image.fs");
 
-    float vertices[] = {
+    double vertices[] = {
         // positions         // normals        // texture coords
          1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
         -1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
@@ -133,7 +132,7 @@ int main() {
         -1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
          1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f
     };
-    float planeVertices[] = {
+    double planeVertices[] = {
         // positions         // normals         // texcoords
          1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
         -1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
@@ -152,11 +151,11 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 8 * sizeof(double), (void*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_DOUBLE, GL_FALSE, 8 * sizeof(double), (void*)(3 * sizeof(double)));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_DOUBLE, GL_FALSE, 8 * sizeof(double), (void*)(6 * sizeof(double)));
     glBindVertexArray(0);
 
     // Image VAO/VBO
@@ -167,11 +166,11 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_DOUBLE, GL_FALSE, 8 * sizeof(double), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_DOUBLE, GL_FALSE, 8 * sizeof(double), (void*)(3 * sizeof(double)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_DOUBLE, GL_FALSE, 8 * sizeof(double), (void*)(6 * sizeof(double)));
     glEnableVertexAttribArray(2);
 
     /*unsigned int diffuseMap = loadTexture("container2.png");
@@ -202,7 +201,7 @@ int main() {
     // Rendering loop - runs until GLFW is instructed to close
     while (!glfwWindowShouldClose(window)) {
         // Track time since last frame
-        float currentFrame = glfwGetTime();
+        double currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
@@ -223,7 +222,7 @@ int main() {
         glm::mat4 view = camera.GetViewMatrix();
         shader.setMat4("view", view);
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.FOV), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.FOV), (double)SCR_WIDTH / (double)SCR_HEIGHT, 0.1, 100.0);
         shader.setMat4("projection", projection);
 
         glm::mat4 transform = glm::mat4(1.0f); // Identity matrix
@@ -239,14 +238,14 @@ int main() {
 
         // Check for tile change
         if (currentFrame - changed > 0.3) {
-            float distCur = curTile->center.y;
+            double distCur = curTile->center.y;
             for (Tile* neighbor : curTile->getNeighbors()) {
                 if (distCur > neighbor->center.y) {
                     curTile = neighbor;
                     camera.Position = getXZ(curTile->center);
 
                     glm::vec3 reversed = reverseXZ(curTile->vertices.at(0)->getPos(), camera.Position.x, camera.Position.z);
-                    float ang = atan2(reversed.z, reversed.x);
+                    double ang = atan2(reversed.z, reversed.x);
                     curTile->angle = ang;
 
                     changed = currentFrame;
@@ -378,12 +377,12 @@ void genImg(vector<Tile*> mega, vector<Tile*> worldTiles, unsigned int ind) {
     string coords = to_string(worldTiles.size());
 
     for (auto& tile : worldTiles) {
-        glm::vec3 c = tile->center;
+        glm::dvec3 c = tile->center;
         coords += " " + to_string(tile->queueNum) + " " + to_string(c.x) + " " + to_string(c.z);
     }
 
     for (auto& tile : mega) {
-        glm::vec3 c = tile->center;
+        glm::dvec3 c = tile->center;
         coords += " " + to_string(c.x) + " " + to_string(c.z);
         tile->queueNum = ind;
         ind++;
@@ -436,8 +435,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
         firstMouse = false;
     }
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
+    double xoffset = xpos - lastX;
+    double yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
 
@@ -484,24 +483,19 @@ unsigned int loadTexture(char const* path)
     return textureID;
 }
 
-// Print a vec3
-void printVec(glm::vec3 v) {
+// Print a dvec3
+void printVec(glm::dvec3 v) {
     cout << "(" << v.x << ", " << v.y << ", " << v.z << ")" << endl;
 }
 
-// Print a float
-void printNum(float num) {
-    cout << num << endl;
-}
-
-// Set consecutive elements in array to a vec3
-void setArray(float arr[], glm::vec3 v, int ind) {
+// Set consecutive elements in array to a dvec3
+void setArray(double arr[], glm::dvec3 v, int ind) {
     arr[ind] = v.x;
     arr[ind + 1] = v.y;
     arr[ind + 2] = v.z;
 }
 
-void setAllVertices(float arr[], Tile* tile) {
+void setAllVertices(double arr[], Tile* tile) {
     setArray(arr, getPoincare(tile->vertices.at(0)->getPos()), 0);
     setArray(arr, getPoincare(tile->vertices.at(1)->getPos()), 8);
     setArray(arr, getPoincare(tile->vertices.at(2)->getPos()), 16);

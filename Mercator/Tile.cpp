@@ -7,7 +7,7 @@ Tile::Tile(int n, int k) : name("O"), n(n), k(k) {
     float b = ((float)rand() / (RAND_MAX));
     color = glm::vec4(r, g, b, 1.0f);
 
-    center = glm::vec3(0, 1, 0);
+    center = glm::dvec3(0, 1, 0);
 
     Vertex* first_vert = new Vertex(k, reversePoincare(circleRadius(n, k), 0));
     vertices.push_back(first_vert);
@@ -16,10 +16,9 @@ Tile::Tile(int n, int k) : name("O"), n(n), k(k) {
     Edge* edge = first_edge;
     edge->addTile(this);
 
-    std::cout << "ORIGIN TILE" << std::endl;
     for (int i = 1; i < n; i++) {
         Vertex* next_vert = edge->vertex2;
-        glm::vec3 next_loc = rotate(vertices.at(i - 1)->getPos(), 2 * M_PI / n);
+        glm::dvec3 next_loc = rotate(vertices.at(i - 1)->getPos(), 2 * M_PI / n);
         next_vert->clamp(next_loc);
         vertices.push_back(next_vert);
         
@@ -56,8 +55,6 @@ Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
 
     vertices.insert(vertices.begin(), back_vert);
 
-    std::cout << "NON ORIGIN TILE" << std::endl;
-
     Edge* back_edge = back_vert->next(e);
     while (back_vert != front_vert && !back_edge->hasDangling()) {
         back_edge->addTile(this);
@@ -78,13 +75,13 @@ Tile::Tile(Tile* ref, Edge* e, int n, int k) : name("N"), n(n), k(k) {
         Vertex* reflecting_vertex = e->verts(ref->center).at(1);
         Edge* ref_edge = reflecting_vertex->prev(e);
 
-        glm::vec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
+        glm::dvec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
 
         int size = vertices.size();
         for (int i = size; i < n; i++) {
             reflecting_vertex = (reflecting_vertex == ref_edge->vertex1) ? ref_edge->vertex2 : ref_edge->vertex1; //reflecting_vertex = ref_edge->verts(ref->center).at(1);
 
-            glm::vec3 next_loc = extend(reflecting_vertex->getPos(), midpt);
+            glm::dvec3 next_loc = extend(reflecting_vertex->getPos(), midpt);
             if (!edge->vertex2->initialized) {
                 vertex = edge->vertex2;
                 vertex->clamp(next_loc);
@@ -137,7 +134,7 @@ int Tile::findEdge(Edge* e) {
 }
 
 void Tile::setVertexLocs(Tile* ref, Edge* e) {
-    glm::vec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
+    glm::dvec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
     center = extend(ref->center, midpt);
 
     Vertex* vertex = e->verts(center).at(1);
@@ -152,7 +149,7 @@ void Tile::setVertexLocs(Tile* ref, Edge* e) {
         vertex = (vertex == edge->vertex1) ? edge->vertex2 : edge->vertex1;
         reflecting_vertex = (reflecting_vertex == ref_edge->vertex1) ? ref_edge->vertex2 : ref_edge->vertex1; //reflecting_vertex = ref_edge->verts(ref->center).at(1);
         
-        glm::vec3 next_loc = extend(reflecting_vertex->getPos(), midpt);
+        glm::dvec3 next_loc = extend(reflecting_vertex->getPos(), midpt);
         vertex->setPos(next_loc);
 
         edge = vertex->prev(edge);
@@ -181,7 +178,7 @@ void Tile::expand(bool create) {
     }
 }
 
-void Tile::setStart(glm::vec3 relPos) {
+void Tile::setStart(glm::dvec3 relPos) {
     // cosh(dist. between two centers) = golden ratio
     // dist = 2 * 0.5306375309525178260165094581067867429033927494693168481986051407
     // sinh(0.5306) * cosh(z) = sinh(z)
@@ -206,7 +203,7 @@ void Tile::setStart(glm::vec3 relPos) {
     for (int i = 0; i < n; i++)
         vertices.at(i)->setPos(translateXZ(vertices.at(i)->getPos(), relPos.x, relPos.z));
 
-    center = translateXZ(glm::vec3(0, 1, 0), relPos.x, relPos.z);
+    center = translateXZ(glm::dvec3(0, 1, 0), relPos.x, relPos.z);
     /*
     TR = vertices.at(0)->getPos();
     TL = vertices.at(1)->getPos();

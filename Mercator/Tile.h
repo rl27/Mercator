@@ -22,11 +22,11 @@ public:
     static std::vector<Tile*> all;
     static std::queue<Tile*> parents;
 
-    glm::vec3 center;
+    glm::dvec3 center;
     std::string name;
     glm::vec4 color;
     int texture;
-    float angle;
+    double angle;
     int queueNum;
     Tile* parent;
 
@@ -49,7 +49,7 @@ public:
 
     // Set starting tile position based on relative position to its center
     // Calls expand() repeatedly, breadth-first
-    void setStart(glm::vec3 relPos);
+    void setStart(glm::dvec3 relPos);
 
     // Check if tile is in vector of all currently updated/visible tiles
     bool isVisible();

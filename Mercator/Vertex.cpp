@@ -2,19 +2,19 @@
 
 Vertex::Vertex(int k) : k(k) {
 	initialized = false;
-	pos = glm::vec3(0);
+	pos = glm::dvec3(0);
 }
 
-Vertex::Vertex(int k, glm::vec3 loc): k(k) {
+Vertex::Vertex(int k, glm::dvec3 loc): k(k) {
 	initialized = false;
 	clamp(loc);
 }
 
-void Vertex::setPos(glm::vec3 loc) {
+void Vertex::setPos(glm::dvec3 loc) {
 	pos = loc;
 }
 
-glm::vec3 Vertex::getPos() {
+glm::dvec3 Vertex::getPos() {
 	return pos;
 }
 
@@ -32,7 +32,7 @@ Edge* Vertex::prev(Edge* e) {
 	return edges.at((idx - 1 + k) % k);
 }
 
-void Vertex::clamp(glm::vec3 loc) {
+void Vertex::clamp(glm::dvec3 loc) {
 	assert(!initialized);
 	initialized = true;
 	pos = loc;
@@ -84,15 +84,15 @@ void Edge::addTile(Tile* t) {
 		std::cout << "DUPLICATE TILE" << std::endl;
 }
 
-std::vector<Vertex*> Edge::verts(glm::vec3 center) {
+std::vector<Vertex*> Edge::verts(glm::dvec3 center) {
 	std::vector<Vertex*> verts;
 
-	glm::vec3 v1 = getPoincare(vertex1->getPos()) - getPoincare(center);
-	glm::vec3 v2 = getPoincare(vertex2->getPos()) - getPoincare(center);
-	float rad1 = atan2(v1[2], v1[0]);
-	float rad2 = atan2(v2[2], v2[0]);
+	glm::dvec3 v1 = getPoincare(vertex1->getPos()) - getPoincare(center);
+	glm::dvec3 v2 = getPoincare(vertex2->getPos()) - getPoincare(center);
+	double rad1 = atan2(v1[2], v1[0]);
+	double rad2 = atan2(v2[2], v2[0]);
 
-	float angle = fmod(rad2 - rad1 + 2 * M_PI, 2 * M_PI);
+	double angle = fmod(rad2 - rad1 + 2 * M_PI, 2 * M_PI);
 
 	if (angle > M_PI) {
 		std::vector<Vertex*> v{ vertex2, vertex1 };
