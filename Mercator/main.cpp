@@ -57,7 +57,7 @@ queue<Tile*> Tile::parents;
 // Number of edges per tile and number of tiles per vertex
 const int n = 4;
 const int k = 5;
-const int rad = circleRadius(n, k);
+const double rad = circleRadius(n, k);
 
 // Call python script to generate image; run in parallel to OpenGL
 void genImg(vector<Tile*> t, vector<Tile*> worldTiles, unsigned int ind);
@@ -215,8 +215,8 @@ int main() {
         processInput(window);
 
         // Background color
-        //glClearColor(0.529f, 0.808f, 0.98f, 1.0f);
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.529f, 0.808f, 0.98f, 1.0f);
+        //glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         // Clear color buffer and depth buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -270,7 +270,6 @@ int main() {
 
             Tile* p = Tile::parents.front();
             
-
             p->texture = placeholder;
             megatile.push_back(p);
             
@@ -296,17 +295,6 @@ int main() {
                     if (t->queueNum != -1)
                         worldTiles.push_back(t);
                 }
-                /*
-                // This will make the sampler only use adjacent tiles; set sigma = alpha = 1.0
-                if (curTile->Up->queueNum != -1)
-                    worldTiles.push_back(curTile->Up);
-                if (curTile->Right->queueNum != -1)
-                    worldTiles.push_back(curTile->Right);
-                if (curTile->Left->queueNum != -1)
-                    worldTiles.push_back(curTile->Left);
-                if (curTile->Down->queueNum != -1)
-                    worldTiles.push_back(curTile->Down);
-                */
 
                 vector<Tile*> megatile = waiting.front();
                 allThreads.emplace_back(thread(genImg, megatile, worldTiles, index1));
@@ -342,7 +330,7 @@ int main() {
                 imageShader.use();
                 model = glm::translate(glm::dmat4(1.0f), getPoincare(t->center));
                 // float imgScale = glm::distance(getPoincare(t->TL), getPoincare(t->BR));
-                float imgScale = rad * 0.125;
+                float imgScale = rad * 0.3;
                 model = glm::scale(model, glm::vec3(imgScale));
                 model = glm::translate(model, glm::vec3(0, 1, 0));
                 glm::dvec3 target = glm::dvec3(0) - getPoincare(t->center);
@@ -479,7 +467,7 @@ unsigned int loadTexture(char const* path)
         // Set the texture wrapping parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        // set texture filtering parameters
+        // Set texture filtering parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }

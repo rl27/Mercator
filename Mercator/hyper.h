@@ -78,7 +78,7 @@ static glm::dvec3 getPoincare(glm::dvec3 v)
     return glm::dvec3(v.x / y1, 0, v.z / y1);
 }
 
-// Project from (0,-1,0) to hyperboloid through a point in the unit circle.
+// Project from (0,-1,0) to hyperboloid through a point (a,b) within the unit circle.
 // Derivation: y^2 = 1 + x^2 + z^2, y = x/a - 1, y = z/c - 1, sub x and z in the first equation.
 static glm::dvec3 reversePoincare(double a, double b)
 {

@@ -222,11 +222,11 @@ void Tile::setStart(glm::dvec3 relPos) {
     while (next.size() != 0) {
         Tile* t = next.back();
         next.pop_back();
-        if (t->withinRadius(0.8))
+        if (t->withinRadius(0.75))
             t->expand();
     }
 
-    /* // This is for marking tiles to be generated
+    // This is for marking tiles to be generated
     if (!parent) {
         parents.push(this);
         parent = this;
@@ -235,7 +235,6 @@ void Tile::setStart(glm::dvec3 relPos) {
                 t->parent = this;
         }
     }
-    */
 }
 
 std::vector<Tile*> Tile::getNeighbors() {
