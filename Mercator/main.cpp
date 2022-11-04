@@ -56,7 +56,8 @@ queue<Tile*> Tile::parents;
 
 // Number of edges per tile and number of tiles per vertex
 const int n = 4;
-const int k = 6;
+const int k = 5;
+const int rad = circleRadius(n, k);
 
 // Call python script to generate image; run in parallel to OpenGL
 void genImg(vector<Tile*> t, vector<Tile*> worldTiles, unsigned int ind);
@@ -124,14 +125,18 @@ int main() {
 
     double vertices[] = {
         // positions         // normals        // texture coords
-         1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
-        -1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
+         1.0,  1.0, 0.0,  0.0, 1.0, 0.0,  1.0, 0.0,
+        -1.0,  1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0,
+        -1.0, -1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0,
 
-         1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
-        -1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
-         1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f
+         1.0,  1.0, 0.0,  0.0, 1.0, 0.0,  1.0, 0.0,
+        -1.0, -1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 1.0,
+         1.0, -1.0, 0.0,  0.0, 1.0, 0.0,  1.0, 1.0
     };
+
+    double planeVertices[3 * (n - 2) * 8] = { 0.0 };
+    
+    /*
     double planeVertices[] = {
         // positions         // normals         // texcoords
          1.0f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
@@ -142,6 +147,7 @@ int main() {
         -1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,  0.0f, 1.0f,
          1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f
     };
+    */
 
     // Plane VAO/VBO
     unsigned int planeVAO, planeVBO;
@@ -209,7 +215,8 @@ int main() {
         processInput(window);
 
         // Background color
-        glClearColor(0.529f, 0.808f, 0.98f, 1.0f);
+        //glClearColor(0.529f, 0.808f, 0.98f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         // Clear color buffer and depth buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -328,24 +335,24 @@ int main() {
             glBindVertexArray(planeVAO);
             glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glDrawArrays(GL_TRIANGLES, 0, 3 * (n - 2));
 
-            /*if (t->texture != -1)
+            if (t->texture != -1)
             {
                 imageShader.use();
-                model = glm::translate(glm::mat4(1.0f), getPoincare(t->center));
-                float imgScale = glm::distance(getPoincare(t->TL), getPoincare(t->BR));
-                model = glm::scale(model, glm::vec3(imgScale * 0.125f));
+                model = glm::translate(glm::dmat4(1.0f), getPoincare(t->center));
+                // float imgScale = glm::distance(getPoincare(t->TL), getPoincare(t->BR));
+                float imgScale = rad * 0.125;
+                model = glm::scale(model, glm::vec3(imgScale));
                 model = glm::translate(model, glm::vec3(0, 1, 0));
-                glm::vec3 target = glm::vec3(0) - getPoincare(t->center);
-                model = glm::rotate(model, atan2(-target.z, target.x) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+                glm::dvec3 target = glm::dvec3(0) - getPoincare(t->center);
+                model = glm::rotate(model, (float) atan2(-target.z, target.x) + glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                 imageShader.setMat4("model", model);
                 glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, t->texture);
                 glBindVertexArray(VAO);
                 glDrawArrays(GL_TRIANGLES, 0, 6);
             }
-            */
         }
 
         glfwSwapBuffers(window); // swap the color buffer (color values for each pixel in GLFW's window)
@@ -496,16 +503,16 @@ void setArray(double arr[], glm::dvec3 v, int ind) {
 }
 
 void setAllVertices(double arr[], Tile* tile) {
-    setArray(arr, getPoincare(tile->vertices.at(0)->getPos()), 0);
-    setArray(arr, getPoincare(tile->vertices.at(1)->getPos()), 8);
-    setArray(arr, getPoincare(tile->vertices.at(2)->getPos()), 16);
-    setArray(arr, getPoincare(tile->vertices.at(0)->getPos()), 24);
-    setArray(arr, getPoincare(tile->vertices.at(2)->getPos()), 32);
-    setArray(arr, getPoincare(tile->vertices.at(3)->getPos()), 40);
-    /*setArray(arr, getBeltrami(tile->TR), 0);
-    setArray(arr, getBeltrami(tile->TL), 8);
-    setArray(arr, getBeltrami(tile->BL), 16);
-    setArray(arr, getBeltrami(tile->TR), 24);
-    setArray(arr, getBeltrami(tile->BL), 32);
-    setArray(arr, getBeltrami(tile->BR), 40);*/
+    int count = 0;
+    for (int i = 0; i < n - 2; i++) {
+        setArray(arr, getPoincare(tile->vertices.at(0)->getPos()), 8 * count++);
+        setArray(arr, getPoincare(tile->vertices.at(i + 1)->getPos()), 8 * count++);
+        setArray(arr, getPoincare(tile->vertices.at(i + 2)->getPos()), 8 * count++);
+    }
+
+    /*for (int i = 0; i < n - 2; i++) {
+        setArray(arr, getBeltrami(tile->vertices.at(0)->getPos()), 8 * count++);
+        setArray(arr, getBeltrami(tile->vertices.at(i + 1)->getPos()), 8 * count++);
+        setArray(arr, getBeltrami(tile->vertices.at(i + 2)->getPos()), 8 * count++);
+    }*/
 }

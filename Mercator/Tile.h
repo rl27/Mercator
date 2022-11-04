@@ -42,10 +42,11 @@ public:
     void populateEdges(); // Once all vertices are set, fill edges vector with edges
     int findEdge(Edge* e); // Find index of edge in edges vector
     void setVertexLocs(Tile* ref, Edge* e); // Set vertex locations for this tile, given a reference tile and edge
+    void setVertexLocs2(Tile* ref, Edge* e);
     std::vector<Tile*> getNeighbors(); // Get tile neighbors
 
     // Expand in all four directions, creating new tiles if necessary
-    void expand(bool create);
+    void expand();
 
     // Set starting tile position based on relative position to its center
     // Calls expand() repeatedly, breadth-first
@@ -53,6 +54,9 @@ public:
 
     // Check if tile is in vector of all currently updated/visible tiles
     bool isVisible();
+
+    // Check if any of tile's Poincare-projected vertices are within the given radius
+    bool withinRadius(double rad);
 };
 
 #endif

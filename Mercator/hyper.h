@@ -63,6 +63,14 @@ static glm::dvec3 line(glm::dvec3 a, glm::dvec3 b, double d)
     return a * cosh(d) + proj * sinh(d);
 }
 
+// Given x and two points p and q, construct point y such that dist(x,p) = dist(y,q) and vice versa.
+// Essentially "reflects" across the line passing orthogonally through the midpoint of pq. Parallel?
+static glm::dvec3 symmetry(glm::dvec3 x, glm::dvec3 p, glm::dvec3 q)
+{
+    glm::dvec3 u = (p - q) / sqrt(-hypEval(p - q));
+    return x - 2 * (-minkDot(x, u)) * u;
+}
+
 // Get Poincare projection from hyperboloid to (0,-1,0)
 static glm::dvec3 getPoincare(glm::dvec3 v)
 {

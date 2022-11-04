@@ -19,6 +19,7 @@ const double DEFAULT_PITCH = 0.0;
 const double DEFAULT_SPEED = 0.6;
 const double DEFAULT_SENSITIVITY = 0.1;
 const double DEFAULT_FOV = 60.0;
+const double DEFAULT_HEIGHT = 0.4;
 
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera
@@ -38,6 +39,7 @@ public:
     double MouseSensitivity;
     double FOV;
     bool sprint;
+    double height;
 
     // Constructor that takes vectors
     Camera(glm::dvec3 position = glm::dvec3(0.0, 0.0, 0.0), glm::dvec3 up = glm::dvec3(0.0, 1.0, 0.0), double yaw = DEFAULT_YAW, double pitch = DEFAULT_PITCH);

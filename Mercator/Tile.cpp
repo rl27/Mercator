@@ -157,15 +157,38 @@ void Tile::setVertexLocs(Tile* ref, Edge* e) {
     }
 }
 
-void Tile::expand(bool create) {
+void Tile::setVertexLocs2(Tile* ref, Edge* e) {
+    glm::dvec3 midpt = midpoint(e->vertex1->getPos(), e->vertex2->getPos());
+    center = extend(ref->center, midpt);
+
+    Vertex* vertex = e->verts(center).at(1);
+    Edge* edge = vertex->prev(e);
+
+    Vertex* reflecting_vertex = vertex;
+    Edge* ref_edge = reflecting_vertex->next(e);
+
+    for (int i = 0; i < n - 2; i++) {
+        // ccw vertex ordering breaks down when the vertex locations are inaccurate.
+        // Need to rely on comparing vertex1 and vertex2 instead of using verts().
+        vertex = (vertex == edge->vertex1) ? edge->vertex2 : edge->vertex1;
+        reflecting_vertex = (reflecting_vertex == ref_edge->vertex1) ? ref_edge->vertex2 : ref_edge->vertex1;
+
+        glm::dvec3 next_loc = symmetry(reflecting_vertex->getPos(), ref->center, center);
+        vertex->setPos(next_loc);
+
+        edge = vertex->prev(edge);
+        ref_edge = reflecting_vertex->next(ref_edge);
+    }
+}
+
+void Tile::expand() {
     for (Edge* e : edges) {
         Tile* other_tile = NULL;
         if (e->tiles.size() < 2) {
-            if (create) {
-                other_tile = new Tile(this, e, n, k);
-                all.push_back(other_tile);
-            }
-        } else {
+            other_tile = new Tile(this, e, n, k);
+            all.push_back(other_tile);
+        }
+        else {
             assert(e->tiles.size() == 2);
             other_tile = (this == e->tiles.at(0)) ? e->tiles.at(1) : e->tiles.at(0);
             // other_tile->setVertexLocs(this, e);
@@ -173,29 +196,12 @@ void Tile::expand(bool create) {
         if (other_tile && !other_tile->isVisible()) {
             next.push_back(other_tile);
             visible.push_back(other_tile);
-            other_tile->setVertexLocs(this, e);
+            other_tile->setVertexLocs2(this, e);
         }
     }
 }
 
 void Tile::setStart(glm::dvec3 relPos) {
-    // cosh(dist. between two centers) = golden ratio
-    // dist = 2 * 0.5306375309525178260165094581067867429033927494693168481986051407
-    // sinh(0.5306) * cosh(z) = sinh(z)
-    // z = 0.6268696629061778141444633762119364014776097856510327417726257885
-
-    // Order 6: log(2 + sqrt(3)) = 1.3169578969248167086250463473079684440269819714675164797684722569
-    // cosh(dist. between two centers) = sqrt(1.5)
-    //   Somehow when I looked up 1.22474487139 (which is approx. sqrt(1.5)),
-    //   most of the search results were for a game called Nier Replicant.
-
-    // Order 7: 1.4490747226775863350321731432577267824696315854162935178461711615122500380225563
-    // cosh(dist. between two centers): https://qr.ae/pGuGKB
-
-    // RULDR on (0,1,0) gives (sc^2 - sc^3 - 2cs^3 + sc^4,   cs^2 - 3s^2*c^2 + c^5,   sc^2 + s^3 - sc^3)
-
-    // TODO: Figure out derivation of circleRadius (circ_rad)
-    
     vertices.at(0)->setPos(rotate(reversePoincare(circleRadius(n, k), 0), angle));
     for (int i = 1; i < n; i++)
         vertices.at(i)->setPos(rotate(vertices.at(i - 1)->getPos(), 2 * M_PI / n));
@@ -204,12 +210,6 @@ void Tile::setStart(glm::dvec3 relPos) {
         vertices.at(i)->setPos(translateXZ(vertices.at(i)->getPos(), relPos.x, relPos.z));
 
     center = translateXZ(glm::dvec3(0, 1, 0), relPos.x, relPos.z);
-    /*
-    TR = vertices.at(0)->getPos();
-    TL = vertices.at(1)->getPos();
-    BL = vertices.at(2)->getPos();
-    BR = vertices.at(3)->getPos();
-    */
 
     std::vector<Tile*> copy;
 
@@ -219,16 +219,11 @@ void Tile::setStart(glm::dvec3 relPos) {
     visible.clear();
     visible.push_back(this);
 
-    int depth = 2;
-    for (int i = 0; i <= depth; i++) {
-        copy.clear();
-        for (Tile* t : next)
-            copy.push_back(t);
-        next.clear();
-
-        bool create = (i <= depth);
-        for (Tile* t : copy)
-            t->expand(create);
+    while (next.size() != 0) {
+        Tile* t = next.back();
+        next.pop_back();
+        if (t->withinRadius(0.8))
+            t->expand();
     }
 
     /* // This is for marking tiles to be generated
@@ -240,38 +235,6 @@ void Tile::setStart(glm::dvec3 relPos) {
                 t->parent = this;
         }
     }
-    */
-    
-    /*
-    for (Tile* t : all)
-    {
-        if (abs(t->color.x * 256 - 121.668) < 0.005)
-        {
-            for (Vertex* v : t->vertices)
-            {
-                std::cout << "v";
-                for (Edge* e : v->edges)
-                {
-                    if (e->hasDangling())
-                        std::cout << "1";
-                }
-            }
-        }
-        if (abs(t->color.x * 256 - 140.684) < 0.005)
-        {
-            std::cout << std::endl;
-            for (Vertex* v : t->vertices)
-            {
-                std::cout << "v";
-                for (Edge* e : v->edges)
-                {
-                    if (e->hasDangling())
-                        std::cout << "2";
-                }
-            }
-        }
-    }
-    std::cout << std::endl;
     */
 }
 
@@ -289,5 +252,13 @@ std::vector<Tile*> Tile::getNeighbors() {
 bool Tile::isVisible() {
     if (std::find(visible.begin(), visible.end(), this) != visible.end())
         return true;
+    return false;
+}
+
+bool Tile::withinRadius(double rad) {
+    for (Vertex* v : vertices) {
+        if (glm::distance(glm::dvec3(0), getPoincare(v->getPos())) < rad)
+            return true;
+    }
     return false;
 }

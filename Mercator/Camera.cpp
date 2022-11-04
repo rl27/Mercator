@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera(glm::dvec3 position, glm::dvec3 up, double yaw, double pitch) : Front(glm::dvec3(1.0, 0.0, 0.0)), MovementSpeed(DEFAULT_SPEED), MouseSensitivity(DEFAULT_SENSITIVITY), FOV(DEFAULT_FOV)
+Camera::Camera(glm::dvec3 position, glm::dvec3 up, double yaw, double pitch) : Front(glm::dvec3(1.0, 0.0, 0.0)), MovementSpeed(DEFAULT_SPEED), MouseSensitivity(DEFAULT_SENSITIVITY), FOV(DEFAULT_FOV), height(DEFAULT_HEIGHT)
 {
     Position = position;
     WorldUp = up;
@@ -10,7 +10,7 @@ Camera::Camera(glm::dvec3 position, glm::dvec3 up, double yaw, double pitch) : F
     updateCameraVectors();
 }
 
-Camera::Camera(double posX, double posY, double posZ, double upX, double upY, double upZ, double yaw, double pitch) : Front(glm::dvec3(0.0, 0.0, -1.0)), MovementSpeed(DEFAULT_SPEED), MouseSensitivity(DEFAULT_SENSITIVITY), FOV(DEFAULT_FOV)
+Camera::Camera(double posX, double posY, double posZ, double upX, double upY, double upZ, double yaw, double pitch) : Front(glm::dvec3(0.0, 0.0, -1.0)), MovementSpeed(DEFAULT_SPEED), MouseSensitivity(DEFAULT_SENSITIVITY), FOV(DEFAULT_FOV), height(DEFAULT_HEIGHT)
 {
     Position = glm::dvec3(posX, posY, posZ);
     WorldUp = glm::dvec3(upX, upY, upZ);
@@ -23,7 +23,7 @@ Camera::Camera(double posX, double posY, double posZ, double upX, double upY, do
 glm::mat4 Camera::GetViewMatrix()
 {
     //return glm::lookAt(Position, Position + Front, Up);
-    return glm::lookAt(glm::dvec3(0.0, 0.4, 0.0), glm::dvec3(0.0, 0.4, 0.0) + Front, Up);
+    return glm::lookAt(glm::dvec3(0.0, height, 0.0), glm::dvec3(0.0, height, 0.0) + Front, Up);
 }
 
 void Camera::ProcessKeyboard(Camera_Movement direction, double deltaTime, bool FPS)
@@ -79,11 +79,18 @@ void Camera::ProcessMouseMovement(double xoffset, double yoffset, GLboolean cons
 
 void Camera::ProcessMouseScroll(double yoffset)
 {
-    FOV -= (double)yoffset;
+    height -= yoffset * 0.08;
+    if (height < 0.15)
+        height = 0.15;
+    if (height > 2.5)
+        height = 2.5;
+    /*
+    FOV -= yoffset;
     if (FOV < 1.0f)
         FOV = 1.0f;
     if (FOV > 60.0f)
         FOV = 60.0f;
+    */
 }
 
 void Camera::updateCameraVectors()
