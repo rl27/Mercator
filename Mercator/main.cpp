@@ -55,8 +55,8 @@ vector<Tile*> Tile::all;
 queue<Tile*> Tile::parents;
 
 // Number of edges per tile and number of tiles per vertex
-const int n = 4;
-const int k = 5;
+const int n = 6;
+const int k = 8;
 const double rad = circleRadius(n, k);
 
 // Call python script to generate image; run in parallel to OpenGL

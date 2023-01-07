@@ -9,6 +9,7 @@ Tile::Tile(int n, int k) : name("O"), n(n), k(k) {
 
     center = glm::dvec3(0, 1, 0);
 
+    //Vertex* first_vert = new Vertex(k, hypNormalize(reversePoincare(circleRadius(n, k), 0)));
     Vertex* first_vert = new Vertex(k, reversePoincare(circleRadius(n, k), 0));
     vertices.push_back(first_vert);
     Edge* first_edge = first_vert->edges.at(0);
@@ -202,6 +203,7 @@ void Tile::expand() {
 }
 
 void Tile::setStart(glm::dvec3 relPos) {
+    //vertices.at(0)->setPos(rotate(hypNormalize(reversePoincare(circleRadius(n, k), 0)), angle));
     vertices.at(0)->setPos(rotate(reversePoincare(circleRadius(n, k), 0), angle));
     for (int i = 1; i < n; i++)
         vertices.at(i)->setPos(rotate(vertices.at(i - 1)->getPos(), 2 * M_PI / n));
@@ -222,11 +224,12 @@ void Tile::setStart(glm::dvec3 relPos) {
     while (next.size() != 0) {
         Tile* t = next.back();
         next.pop_back();
-        if (t->withinRadius(0.75))
+        if (t->withinRadius(0.85))
             t->expand();
     }
 
-    // This is for marking tiles to be generated
+    /*
+    // This is for marking tiles to receive generated outputs; comment out to disable
     if (!parent) {
         parents.push(this);
         parent = this;
@@ -234,7 +237,7 @@ void Tile::setStart(glm::dvec3 relPos) {
             if (!t->parent)
                 t->parent = this;
         }
-    }
+    }*/
 }
 
 std::vector<Tile*> Tile::getNeighbors() {
