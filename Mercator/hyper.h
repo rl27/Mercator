@@ -97,7 +97,7 @@ static glm::dvec3 getBeltrami(glm::dvec3 v)
 // Euclidean radius of circumscribed circle, given sides per polygon and polygons per vertex.
 static double circleRadius(int n, int k)
 {
-    return sqrt((tan(M_PI/2 - M_PI/k) - tan(M_PI/n)) / (tan(M_PI/2 - M_PI/k) +  tan(M_PI/n)));
+    return sqrt((tan(M_PI/2 - M_PI/k) - tan(M_PI/n)) / (tan(M_PI/2 - M_PI/k) + tan(M_PI/n)));
 }
 
 /*******************

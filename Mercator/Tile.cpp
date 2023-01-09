@@ -224,7 +224,7 @@ void Tile::setStart(glm::dvec3 relPos) {
     while (next.size() != 0) {
         Tile* t = next.back();
         next.pop_back();
-        if (t->withinRadius(0.85))
+        if (t->withinRadius(0.75))
             t->expand();
     }
 
