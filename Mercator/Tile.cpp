@@ -213,8 +213,6 @@ void Tile::setStart(glm::dvec3 relPos) {
 
     center = translateXZ(glm::dvec3(0, 1, 0), relPos.x, relPos.z);
 
-    std::vector<Tile*> copy;
-
     next.clear();
     next.push_back(this);
 
