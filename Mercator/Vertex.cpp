@@ -85,7 +85,6 @@ void Edge::addTile(Tile* t) {
 }
 
 std::vector<Vertex*> Edge::verts(glm::dvec3 center) {
-	std::vector<Vertex*> verts;
 
 	glm::dvec3 v1 = getPoincare(vertex1->getPos()) - getPoincare(center);
 	glm::dvec3 v2 = getPoincare(vertex2->getPos()) - getPoincare(center);
