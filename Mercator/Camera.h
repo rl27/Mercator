@@ -14,8 +14,8 @@ enum Camera_Movement {
 };
 
 // Default camera values
-const double DEFAULT_YAW = -45.0;
-const double DEFAULT_PITCH = -90.0;
+const double DEFAULT_YAW = -90.0;
+const double DEFAULT_PITCH = 0.0;
 const double DEFAULT_SPEED = 0.6;
 const double DEFAULT_SENSITIVITY = 0.1;
 const double DEFAULT_FOV = 60.0;
