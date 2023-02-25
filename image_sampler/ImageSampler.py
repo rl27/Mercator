@@ -199,7 +199,7 @@ class ImageSampler:
         # 5. for each latent space dim:
         latent_slices = []
         for dim in range(d):
-            # compute the posterior mean MU = K_*^T K f
+            # compute the posterior mean MU = K_*^T K^(-1) f
             f = culled_data['latent_vector'].apply(lambda x: x[dim])
             posterior_mean = train_test_cov.T @ np.linalg.inv(train_cov) @ f
             # sample from the multivariate normal distribution N(MU, SIGMA).  Will be a vector of size n.

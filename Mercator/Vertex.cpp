@@ -5,7 +5,7 @@ Vertex::Vertex(int k) : k(k) {
 	pos = glm::dvec3(0);
 }
 
-Vertex::Vertex(int k, glm::dvec3 loc): k(k) {
+Vertex::Vertex(int k, glm::dvec3 loc) : k(k) {
 	initialized = false;
 	clamp(loc);
 }
@@ -61,6 +61,7 @@ Edge* Vertex::seekVertex(Vertex* v) {
 			return e;
 	}
 	assert(false);
+	return NULL;
 }
 
 /*********************************************************************/
